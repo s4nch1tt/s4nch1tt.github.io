@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>SANCHIT-FLIX - Stream Movies & Web Series</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- VARIABLES --- */
+        :root {
+            --main-color: #e50914; 
+            --main-color-rgb: 229, 9, 20;
+            --bg-color: #000; --card-bg: #111; --surface-color: #1C1C1E;
+            --text-color: #fff; --text-color-light: #aaa;
+            
+            /* Shiny Button Variables */
+            --shiny-cta-bg: #040404;
+            --shiny-cta-fg: #ffffff;
+            --main-color-faded-bg: rgba(229, 9, 20, 0.2);
+            --main-color-glow: rgba(229, 9, 20, 0.5);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Netflix Sans', 'Helvetica Neue', Arial, sans-serif; }
+        
+        /* --- STARS BACKGROUND --- */
+        body { 
+            background: transparent !important; 
+            color: var(--text-color); 
+            max-width: 480px; 
+            margin: 0 auto; 
+            overflow-x: hidden; 
+            -webkit-font-smoothing: antialiased; 
+            padding-bottom: 70px; 
+            position: relative; 
+            min-height: 100vh; 
+        }
+
+        #stars-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .star {
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle var(--duration) ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.2; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.1); } 
+            100% { opacity: 0.2; transform: scale(0.8); }
+        }
+        
+        /* --- UTILS --- */
+        .loading-screen { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:var(--bg-color); z-index:2000; }
+        .loading-logo { font-size:40px; font-weight:700; color:var(--main-color); margin-bottom:16px; animation:pulse 1.5s infinite; letter-spacing: -1px; }
+        .loading-text { color:var(--text-color-light); font-size:16px; animation:fadeInOut 2s infinite; }
+        @keyframes pulse {0%{transform:scale(1);opacity:.8}50%{transform:scale(1.08);opacity:1}100%{transform:scale(1);opacity:.8}}
+        @keyframes fadeInOut {0%,100%{opacity:.5}50%{opacity:1}}
+
+        /* --- HEADER --- */
+        .header { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 14px; display: flex; gap: 12px; align-items: center; position: sticky; top: 0; z-index: 90; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+        .logo-container { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        .logo{ font-size:20px; font-weight:800; color:var(--main-color); letter-spacing:-1px; }
+        .provider-name-display { font-size: 11px; font-weight: 600; color: #eee; background: rgba(255, 255, 255, 0.08); padding: 3px 8px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .header-actions { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+        .header-icon-btn { background: none; border: 0; color: var(--text-color-light); font-size: 18px; cursor: pointer; }
+        .back-btn { background: none; border: 0; color: var(--text-color-light); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 5px; }
+
+        /* --- SIDE MENU --- */
+        #side-menu-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease-in-out; }
+        #side-menu-panel { position: fixed; top: 0; left: 0; bottom: 0; width: 80%; max-width: 280px; background: #1C1C1E; padding: 30px 16px 24px 16px; transform: translateX(-100%); transition: transform 0.3s ease-in-out; display: flex; flex-direction: column; }
+        body.menu-open #side-menu-overlay { opacity: 1; pointer-events: all; }
+        body.menu-open #side-menu-panel { transform: translateX(0); }
+        .side-menu-header { margin-bottom: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-left: 10px; padding-bottom: 16px; }
+        .side-menu-header h2 { font-size: 24px; font-weight: 800; color: #fff; }
+        .side-menu-header p { color: var(--text-color-light); font-size: 14px; margin-top: 4px; }
+        .provider-list { overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; gap: 4px; }
+        .provider-list::-webkit-scrollbar { display: none; }
+        .provider-menu-btn { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 10px; background: transparent; border: none; border-radius: 10px; color: var(--text-color-light); text-align: left; font-size: 16px; font-weight: 500; cursor: pointer; transition: background-color 0.2s, color 0.2s; }
+        .provider-menu-btn i.icon { font-size: 20px; width: 24px; text-align: center; color: #888; transition: color 0.2s; }
+        .provider-menu-btn:hover { background-color: rgba(255, 255, 255, 0.05); }
+        .provider-menu-btn.active { background-color: rgba(255, 255, 255, 0.1); color: #fff; font-weight: 700; }
+        .provider-menu-btn.active i.icon { color: var(--main-color); }
+        .provider-menu-btn .check-mark { margin-left: auto; color: var(--main-color); font-size: 16px; }
+
+        /* --- SLIDER --- */
+        .slider-container { width: 100%; height: 230px; overflow: hidden; margin-bottom: 20px; position: relative; background: var(--card-bg); }
+        .slider { display: flex; height: 100%; transition: transform 0.5s ease-in-out; }
+        .slide { min-width: 100%; height: 100%; position: relative; cursor: pointer; }
+        .slide img { width: 100%; height: 100%; object-fit: cover; display: block; filter: brightness(0.8); }
+        .slide-overlay { position: absolute; left: 0; right: 0; bottom: 0; height: 100%; padding: 18px; display: flex; flex-direction: column; justify-content: flex-end; background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 50%, #000 100%); }
+        .slide-title { font-size: 20px; font-weight: 800; margin-bottom: 12px; color: var(--text-color); }
+        .slide-action-btn { display: inline-flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 8px 16px; border-radius: 20px; text-decoration: none; font-weight: 600; font-size: 14px; align-self: flex-start; }
+        .slider-indicators { position: absolute; right: 12px; bottom: 12px; display: flex; gap: 8px; z-index: 10; }
+        .indicator { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.4); cursor: pointer; }
+        .indicator.active { background: var(--main-color); transform: scale(1.2); }
+
+        /* --- CONTENT --- */
+        .category-section{ margin-bottom:28px; }
+        .category-header{ display:flex; justify-content:space-between; align-items:center; padding:0 12px 8px; }
+        .category-title{ font-size:18px; font-weight:800; color:var(--text-color); position:relative; padding-left:14px; }
+        .category-title::before{ content:''; position:absolute; left:0; top:50%; transform:translateY(-50%); width:6px; height:20px; background:var(--main-color); border-radius:3px; }
+        .see-all-btn{ color:var(--main-color); font-size:13px; text-decoration:none; background:var(--main-color-faded-bg); padding:6px 8px; border-radius:6px; }
+        .content-slider{ display:flex; overflow-x:auto; gap:12px; padding:6px 12px 10px; scrollbar-width:none; }
+        .content-slider::-webkit-scrollbar{ display:none; }
+        .grid-item { flex: 0 0 calc(33.33% - 10px); cursor:pointer; transition:transform .18s; }
+        .grid-item:hover { transform: translateY(-6px); }
+        .content-card { border-radius:8px; overflow:hidden; position:relative; background:var(--card-bg); width: 100%; aspect-ratio: 2/3; }
+        .content-card img { width:100%; height:100%; object-fit:cover; display:block; transition: opacity 0.3s; }
+        
+        /* --- SHINY TEXT EFFECT FOR MOVIE TITLES --- */
+        .content-caption { 
+            font-size: 13px; 
+            font-weight: 700;
+            text-align: center; 
+            margin-top: 8px; 
+            height: 32px; 
+            overflow: hidden; 
+            
+            color: rgba(255,255,255,0.6); 
+            background: linear-gradient(
+                110deg, 
+                rgba(255,255,255,0.6) 40%, 
+                #ffffff 50%, 
+                rgba(255,255,255,0.6) 60% 
+            );
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: textShimmer 3s linear infinite;
+        }
+        
+        @keyframes textShimmer { 
+            0% { background-position: 200% 0; } 
+            100% { background-position: -200% 0; } 
+        }
+
+        .category-grid { padding:12px; display:grid; grid-template-columns: repeat(3, 1fr); gap: 20px 12px; }
+        .category-grid .grid-item { flex: unset; }
+        .genres-grid { padding: 12px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .provider-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.6); color: var(--main-color); font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(6px); text-transform: uppercase; }
+
+        /* --- SEARCH UI --- */
+        #search-page { background: transparent; }
+        #search-page::before { content: ''; position: fixed; inset: 0; z-index: -1; background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        #search-page .search-container { position: sticky; top: 0; z-index: 100; padding: 16px; background: transparent; display: flex; gap: 10px; align-items: center; }
+        #search-page .search-input-wrapper { position: relative; flex-grow: 1; }
+        #search-page .search-input { width: 100%; color: #fff; padding: 12px 40px 12px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 25px; font-size: 16px; outline: none; transition: all 0.3s; }
+        #search-page .search-input:focus { background: rgba(0,0,0,0.5); border-color: var(--main-color); box-shadow: 0 0 15px var(--main-color-glow); }
+        #search-page .clear-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; color: #888; background: rgba(255,255,255,0.1); border-radius: 50%; width: 22px; height: 22px; border: 0; cursor: pointer; display: none; align-items: center; justify-content: center; }
+        #search-suggestions { position: absolute; top: 110%; left: 0; right: 0; background: #1a1a1a; border: 1px solid #333; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 201; display: none; max-height: 300px; overflow-y: auto; }
+        .suggestion-item { padding: 12px 16px; color: #ccc; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; }
+        .suggestion-item i { color: var(--main-color); font-size: 12px; }
+        #search-description { text-align: center; padding: 60px 20px; color: var(--text-color-light); animation: fadeSlideUp 0.6s ease; }
+        @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .search-result-item { animation: fadeSlideUp 0.4s ease forwards; opacity: 0; }
+
+        /* --- DETAIL PAGE --- */
+        .detail-page{ padding-top:60px; }
+        .detail-backdrop{ width:100%; height:250px; position:relative; overflow:hidden; }
+        .detail-backdrop img{ width:100%; height:100%; object-fit:cover; display:block; filter:brightness(.7); transition: opacity 0.5s; }
+        .detail-backdrop::after{ content:''; position:absolute; left:0; right:0; bottom:0; height:120px; background:linear-gradient(to top, #000, transparent); }
+        .detail-content{ padding:14px; display:flex; gap:12px; margin-top:-80px; position:relative; z-index:10; }
+        .detail-poster{ width:120px; height:180px; border-radius:10px; overflow:hidden; border:3px solid var(--card-bg); box-shadow:0 10px 20px rgba(0,0,0,.5); margin-right:12px; flex-shrink:0; }
+        .detail-poster img{ width:100%; height:100%; object-fit:cover; display:block; transition: opacity 0.5s; }
+        .detail-info{ flex:1; }
+        .detail-title{ font-size:20px; font-weight:800; margin-bottom:8px; line-height:1.1; color:var(--text-color); }
+        .detail-meta{ display:flex; flex-wrap:wrap; gap:10px; color:#cfcfcf; font-size:13px; margin-bottom:12px; }
+        
+        .meta-rating { background: #f5c518; color: #000; font-weight: 800; padding: 2px 6px; border-radius: 4px; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; }
+        .meta-year { background: rgba(255,255,255,0.15); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+        .meta-genre { color: var(--main-color); font-weight: 600; }
+        .detail-cast { margin-top: 12px; color: #aaa; font-size: 13px; line-height: 1.4; }
+        .detail-cast strong { color: #fff; }
+
+        .action-row { display: flex; gap: 12px; margin-bottom: 12px; }
+        .action-btn { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: #fff; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
+        .action-btn.active { background: var(--main-color); border-color: var(--main-color); }
+        #detail-storyline { background: #0A0A0A; border: 1px solid #222; padding: 14px; border-radius: 8px; margin: 14px 0 24px; color: #ddd; font-size: 15px; line-height: 1.6; text-align: justify; }
+        #download-section-title { font-size:18px; margin-bottom:16px; color:var(--main-color); position:relative; padding-left:16px; transition: color 0.3s; }
+        #download-section-title::before { content:''; position:absolute; left:0; top:50%; transform:translateY(-50%); width:6px; height:18px; background:var(--main-color); border-radius:3px; transition: background-color 0.3s; }
+        .download-links-section { padding: 0 14px; margin-bottom: 24px; }
+        .link-list { display: flex; flex-direction: column; gap: 12px; }
+
+        /* --- SHINY BUTTON STYLES --- */
+        .link-btn, .genre-btn {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 16px 24px; 
+            background: linear-gradient(to bottom, #1a1a1a, #000);
+            background-image: url("https://cdn.prod.website-files.com/689597cc2d57ee623f5a24a2/689646711500e4fcb201a6ff_Container%20(1).svg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border: none;
+            border-radius: 9999px; 
+            color: #fff;
+            font-weight: 700;
+            font-size: 15px;
+            text-decoration: none;
+            cursor: pointer;
+            overflow: hidden;
+            margin-bottom: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+            will-change: transform, box-shadow;
+            isolation: isolate;
+        }
+
+        .genre-btn { justify-content: center; text-transform: capitalize; height: 60px; }
+
+        .link-btn::before, .genre-btn::before, .shiny-icon-btn::before {
+            content: "";
+            position: absolute;
+            inset: -2px; 
+            z-index: -2;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--main-color), #ffffff, var(--main-color), #000, var(--main-color));
+            background-size: 400% 100%;
+            animation: borderFlow 4s linear infinite;
+        }
+
+        .link-btn::after, .genre-btn::after, .shiny-icon-btn::after {
+            content: "";
+            position: absolute;
+            inset: 1.5px; 
+            background: #040404;
+            background-image: url("https://cdn.prod.website-files.com/689597cc2d57ee623f5a24a2/689646711500e4fcb201a6ff_Container%20(1).svg");
+            background-size: cover;
+            border-radius: inherit;
+            z-index: -1;
+        }
+
+        .shiny-icon-btn {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px; height: 40px;
+            min-width: 40px;
+            border-radius: 50%;
+            background: #000; 
+            border: none;
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: transform 0.2s;
+            flex-shrink: 0; 
+            margin: 0;
+            isolation: isolate;
+        }
+
+        @keyframes borderFlow { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+
+        .link-btn:hover, .genre-btn:hover, .shiny-icon-btn:hover { transform: translateY(-2px); box-shadow: 0 0 20px var(--main-color-glow); }
+        .link-btn:active, .genre-btn:active, .shiny-icon-btn:active { transform: scale(0.96); }
+
+        .link-btn span, .link-btn i, .genre-btn span, .shiny-icon-btn i { z-index: 2; position: relative; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+        .link-btn i { color: var(--main-color); }
+        .shiny-icon-btn i { color: #fff; }
+
+        /* --- SETTINGS --- */
+        #about-page { padding: 0; padding-bottom: 30px; }
+        .settings-header { padding: 16px 20px; font-size: 28px; font-weight: 700; }
+        .settings-section-title { padding: 0 20px 10px; font-size: 14px; color: var(--text-color-light); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 10px; }
+        .provider-slider { display: flex; overflow-x: auto; gap: 12px; padding: 0 20px 20px; scrollbar-width: none; }
+        .provider-slider::-webkit-scrollbar { display: none; }
+        .provider-card { flex: 0 0 110px; width: 110px; background: var(--surface-color); border-radius: 12px; padding: 16px 10px; text-align: center; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+        .provider-card.active { border-color: var(--main-color); background: rgba(229, 9, 20, 0.1); }
+        .provider-card-icon { font-size: 24px; color: #fff; margin-bottom: 4px; }
+        .provider-card-name { font-size: 12px; font-weight: 600; color: #ddd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+        .provider-card-sub { font-size: 10px; color: #777; }
+        .provider-card-tag { font-size: 9px; color: var(--main-color); font-weight: 700; margin-top: 2px; }
+        .provider-tag-list { font-size: 10px; background: var(--main-color-faded-bg); color: var(--main-color); padding: 2px 6px; border-radius: 4px; margin-left: auto; font-weight: 700; white-space: nowrap; }
+
+        .settings-list { background: var(--surface-color); border-radius: 12px; margin: 0 20px 24px; overflow: hidden; }
+        a.settings-item { text-decoration: none; color: inherit; }
+        
+        .settings-item { display: flex; align-items: center; padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; text-decoration: none; color: #fff; transition: background 0.2s; }
+        .settings-item:last-child { border-bottom: none; }
+        .settings-item:hover { background: rgba(255,255,255,0.05); }
+        .settings-icon { width: 30px; font-size: 18px; color: var(--main-color); display: flex; justify-content: center; margin-right: 12px; }
+        .settings-text { flex: 1; font-size: 15px; font-weight: 500; }
+        .settings-arrow { color: #555; font-size: 14px; }
+
+        /* --- PM PAGE --- */
+        #provider-manager-page { padding: 0; }
+        .pm-header { padding: 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); background: #000; position: sticky; top: 0; z-index: 10; }
+        .pm-title { font-size: 20px; font-weight: 700; }
+        .pm-tabs { display: flex; padding: 16px; gap: 10px; }
+        .pm-tab { flex: 1; padding: 10px; border-radius: 8px; background: var(--surface-color); color: #888; font-size: 13px; font-weight: 600; border: none; cursor: pointer; }
+        .pm-tab.active { background: #333; color: #fff; }
+        .pm-list { padding: 0 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+        .pm-item { display: flex; align-items: center; background: var(--surface-color); padding: 16px; border-radius: 12px; gap: 16px; }
+        .pm-icon-box { width: 44px; height: 44px; background: rgba(255,255,255,0.05); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #ccc; }
+        .pm-info { flex: 1; }
+        .pm-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; color: #fff; }
+        .pm-details { font-size: 12px; color: #777; }
+        .pm-status { width: 24px; height: 24px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; color: #555; font-size: 12px; }
+        .pm-status.enabled { background: var(--main-color); color: #fff; }
+
+        .page { display: none; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; background: rgba(10,10,10,0.9); backdrop-filter: blur(8px); border-top: 1px solid rgba(255,255,255,0.05); display: none; justify-content: space-around; padding: 8px 0; z-index: 999; }
+        .nav-item { flex: 1; text-align: center; color: #999; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; transition: color 0.2s; }
+        .nav-item i { font-size: 20px; }
+        .nav-item.active { color: var(--main-color); }
+
+        .pagination-controls { display: flex; justify-content: space-between; padding: 12px; }
+        .pagination-btn { background: rgba(255,255,255,0.08); color:var(--text-color); border:1px solid rgba(255,255,255,0.1); padding:10px 16px; border-radius:8px; cursor:pointer; font-weight:700; }
+        .pagination-btn:disabled { opacity:0.5; cursor:not-allowed; }
+        .watchlist-empty { text-align: center; padding: 40px 20px; color: var(--text-color-light); grid-column: 1 / -1; }
+        .watchlist-empty i { font-size: 40px; margin-bottom: 16px; color: #333; }
+        
+        #stream-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1500; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .stream-modal-content { background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid #222; width: 90%; max-width: 380px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+        .modal-close-btn { position: absolute; right: 8px; top: 8px; background: none; border: none; color: #888; font-size: 20px; cursor: pointer; }
+        .stream-list { display: flex; flex-direction: column; gap: 12px; max-height: 70vh; overflow-y: auto; }
+        .stream-btn { display: block; width: 100%; padding: 14px; background: #222; border: 1px solid #333; color:var(--text-color); text-decoration: none; text-align: center; border-radius: 8px; font-weight: 700; transition: background .2s, border-color .2s; cursor: pointer; }
+        .stream-btn:hover { background: var(--main-color); border-color: var(--main-color); }
+
+        /* --- PREFERENCES --- */
+        #preferences-page { padding: 0; background: #000; min-height: 100vh; }
+        .pref-header { padding: 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); background: #000; position: sticky; top: 0; z-index: 10; }
+        .pref-title { font-size: 20px; font-weight: 700; }
+        .pref-section-title { color: #888; font-size: 13px; font-weight: 700; text-transform: uppercase; margin: 24px 20px 12px; letter-spacing: 1px; }
+        .color-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 0 20px; }
+        .color-option { aspect-ratio: 1; border-radius: 50%; cursor: pointer; border: 3px solid #1a1a1a; position: relative; transition: transform 0.2s; }
+        .color-option.active { border-color: #fff; transform: scale(1.1); box-shadow: 0 0 15px var(--main-color-glow); }
+        .custom-color-container { margin: 0 20px; background: var(--surface-color); padding: 16px; border-radius: 16px; display: flex; flex-direction: column; gap: 12px; border: 1px solid #333; }
+        .hex-input-row { display: flex; gap: 12px; align-items: center; }
+        .color-preview { width: 44px; height: 44px; border-radius: 12px; border: 2px solid #444; background: var(--main-color); transition: background-color 0.3s; }
+        .hex-input { flex: 1; background: #000; border: 1px solid #333; color: #fff; padding: 12px 16px; border-radius: 10px; font-size: 16px; font-family: monospace; }
+        .apply-btn { background: var(--main-color); color: #fff; border: none; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 16px; text-align: center; width: 100%; cursor: pointer; transition: background-color 0.3s; }
+
+        .skeleton { background: #1a1a1a; border-radius: 8px; animation: skeleton-load 1s linear infinite alternate; }
+        @keyframes skeleton-load { from { background: #1a1a1a; } to { background: #2a2a2a; } }
+        
+        .spinner { border: 3px solid rgba(255, 255, 255, 0.1); border-top: 3px solid var(--main-color); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+  <!-- STARS CONTAINER -->
+  <div id="stars-container"></div>
+
+  <div id="loading-screen" class="loading-screen">
+    <div class="loading-logo">SANCHIT-FLIX</div>
+    <div class="loading-text">Loading Entertainment...</div>
+  </div>
+
+  <!-- SIDE MENU -->
+  <div id="side-menu-overlay">
+    <div id="side-menu-panel">
+      <div class="side-menu-header">
+        <h2>Select Provider</h2>
+        <p>Content source</p>
+      </div>
+      <div id="provider-list" class="provider-list"></div>
+    </div>
+  </div>
+
+  <!-- HOME PAGE -->
+  <div id="home-page" class="page">
+    <div class="header">
+      <button id="menu-btn" class="header-icon-btn"><i class="fas fa-bars"></i></button>
+      <div class="logo-container">
+          <div class="logo">SANCHIT-FLIX</div>
+          <span id="provider-name-display-home" class="provider-name-display"></span>
+      </div>
+      <div class="header-actions">
+        <button id="theme-toggle-btn" class="header-icon-btn"><i class="fas fa-palette"></i></button>
+        <button id="header-search-btn" class="header-icon-btn"><i class="fas fa-search"></i></button>
+      </div>
+    </div>
+    <div id="slider-container" class="slider-container">
+        <div id="slider" class="slider"></div>
+        <div id="slider-indicators" class="slider-indicators"></div>
+    </div>
+    <div id="home-content"></div>
+  </div>
+  
+  <div id="genres-page" class="page">
+    <div class="header">
+        <button id="menu-btn-genre" class="header-icon-btn"><i class="fas fa-bars"></i></button>
+        <div class="logo-container">
+          <div class="logo">Genres</div>
+          <span id="provider-name-display-genre" class="provider-name-display"></span>
+        </div>
+        <div class="header-actions">
+            <button id="header-search-btn-genre" class="header-icon-btn"><i class="fas fa-search"></i></button>
+        </div>
+    </div>
+    <div id="genres-grid" class="genres-grid"></div>
+  </div>
+  
+  <div id="watchlist-page" class="page">
+    <div class="header">
+        <div class="logo">My List</div>
+    </div>
+    <div id="watchlist-grid" class="category-grid"></div>
+  </div>
+
+  <!-- SETTINGS PAGE -->
+  <div id="about-page" class="page">
+      <div class="settings-header">Settings</div>
+      <div class="settings-section-title">Content Provider</div>
+      <div id="settings-provider-slider" class="provider-slider"></div>
+
+      <div class="settings-list">
+          <div class="settings-item" id="open-provider-manager">
+              <div class="settings-icon"><i class="fas fa-puzzle-piece"></i></div>
+              <div class="settings-text">Provider Manager</div>
+              <i class="fas fa-chevron-right settings-arrow"></i>
+          </div>
+      </div>
+
+      <div class="settings-section-title">Options</div>
+      <div class="settings-list">
+          <div class="settings-item">
+              <div class="settings-icon"><i class="fas fa-download"></i></div>
+              <div class="settings-text">Downloads</div>
+              <i class="fas fa-chevron-right settings-arrow"></i>
+          </div>
+          <div class="settings-item" id="open-history-page">
+              <div class="settings-icon"><i class="fas fa-history"></i></div>
+              <div class="settings-text">Watch History</div>
+              <i class="fas fa-chevron-right settings-arrow"></i>
+          </div>
+          <div class="settings-item" id="open-preferences-page">
+              <div class="settings-icon"><i class="fas fa-sliders-h"></i></div>
+              <div class="settings-text">Preferences</div>
+              <i class="fas fa-chevron-right settings-arrow"></i>
+          </div>
+      </div>
+
+      <div class="settings-section-title">Data Management</div>
+      <div class="settings-list">
+          <div class="settings-item" onclick="if(confirm('Clear all app data?')) { localStorage.clear(); location.reload(); }">
+              <div class="settings-icon" style="color: #e50914;"><i class="fas fa-trash-alt"></i></div>
+              <div class="settings-text">Clear Cache</div>
+              <i class="fas fa-chevron-right settings-arrow"></i>
+          </div>
+      </div>
+      
+      <!-- ABOUT SECTION -->
+      <div class="settings-section-title">About</div>
+      <div class="settings-list">
+           <a href="https://t.me/S4NCHITT" target="_blank" class="settings-item">
+               <div class="settings-icon" style="color: #229ED9;"><i class="fab fa-telegram"></i></div>
+               <div class="settings-text">Join Telegram</div>
+               <i class="fas fa-external-link-alt settings-arrow"></i>
+           </a>
+
+           <a href="https://instagram.com/sanch1t__" target="_blank" class="settings-item">
+               <div class="settings-icon" style="color: #C13584;"><i class="fab fa-instagram"></i></div>
+               <div class="settings-text">Follow on Instagram</div>
+               <i class="fas fa-external-link-alt settings-arrow"></i>
+           </a>
+      </div>
+      
+      <div style="text-align: center; color: #555; font-size: 12px; padding: 20px;">
+          SANCHIT-FLIX v2.1.3<br>Developed by SANCHIT
+      </div>
+  </div>
+
+  <!-- PROVIDER MANAGER PAGE -->
+  <div id="provider-manager-page" class="page">
+      <div class="pm-header">
+          <button class="back-btn" id="pm-back-btn"><i class="fas fa-arrow-left"></i></button>
+          <div class="pm-title">Providers</div>
+          <button class="back-btn" onclick="loadProviderManager()"><i class="fas fa-sync-alt"></i></button>
+      </div>
+      <div class="pm-tabs">
+          <button class="pm-tab active">Installed (<span id="pm-count">0</span>)</button>
+          <button class="pm-tab">Available (<span id="pm-total">0</span>)</button>
+      </div>
+      <div id="pm-list" class="pm-list"></div>
+  </div>
+
+  <!-- HISTORY PAGE -->
+  <div id="history-page" class="page">
+      <div class="pm-header">
+          <button class="back-btn" id="history-back-btn"><i class="fas fa-arrow-left"></i></button>
+          <div class="pm-title">Watch History</div>
+      </div>
+      <div id="history-grid" class="category-grid"></div>
+  </div>
+
+  <!-- PREFERENCES PAGE -->
+  <div id="preferences-page" class="page">
+      <div class="pref-header">
+          <button class="back-btn" id="pref-back-btn"><i class="fas fa-arrow-left"></i></button>
+          <div class="pref-title">Preferences</div>
+      </div>
+
+      <div class="pref-section-title">Preset Themes</div>
+      <div class="color-grid">
+          <div class="color-option" style="background: #e50914;" onclick="setAppTheme('#e50914'); updateColorGrid(this)"></div>
+          <div class="color-option" style="background: #FFBF00;" onclick="setAppTheme('#FFBF00'); updateColorGrid(this)"></div>
+          <div class="color-option" style="background: #00FFFF;" onclick="setAppTheme('#00FFFF'); updateColorGrid(this)"></div>
+          <div class="color-option" style="background: #9D00FF;" onclick="setAppTheme('#9D00FF'); updateColorGrid(this)"></div>
+          <div class="color-option" style="background: #00FF00;" onclick="setAppTheme('#00FF00'); updateColorGrid(this)"></div>
+          <div class="color-option" style="background: #FF00FF;" onclick="setAppTheme('#FF00FF'); updateColorGrid(this)"></div>
+          <div class="color-option" style="background: #FF4500;" onclick="setAppTheme('#FF4500'); updateColorGrid(this)"></div>
+          <div class="color-option" style="background: #1E90FF;" onclick="setAppTheme('#1E90FF'); updateColorGrid(this)"></div>
+      </div>
+
+      <div class="pref-section-title">Custom Color</div>
+      <div class="custom-color-container">
+          <div class="hex-input-row">
+              <div class="color-preview"></div>
+              <input type="text" id="hex-input" class="hex-input" placeholder="#RRGGBB" oninput="updatePreview(this.value)">
+          </div>
+          <button class="apply-btn" onclick="setAppTheme(document.getElementById('hex-input').value)">Apply Theme</button>
+      </div>
+  </div>
+
+  <div id="category-page" class="page">
+    <div class="header">
+        <button id="back-btn-category" class="back-btn"><i class="fas fa-arrow-left"></i></button>
+        <div id="category-page-title" class="logo">Category</div>
+    </div>
+    <div id="category-grid" class="category-grid"></div>
+    <div id="category-pagination-controls" class="pagination-controls">
+      <button id="category-prev-btn" class="pagination-btn">Previous</button>
+      <button id="category-next-btn" class="pagination-btn">Next</button>
+    </div>
+  </div>
+
+  <div id="search-page" class="page">
+    <div class="search-container">
+      <button id="search-back-btn" class="back-btn"><i class="fas fa-arrow-left"></i></button>
+      <div class="search-input-wrapper">
+          <input id="search-input" class="search-input" placeholder="Search across all providers..."/>
+          <button id="clear-search-btn" class="clear-btn"><i class="fas fa-times"></i></button>
+          <div id="search-suggestions"></div>
+      </div>
+    </div>
+    <div id="search-description">
+        <h3>Global Search</h3>
+        <p>Type to search across multiple providers simultaneously.</p>
+    </div>
+    <div id="search-grid" class="category-grid"></div>
+  </div>
+  
+  <div id="detail-page" class="page">
+    <div class="header" style="background: transparent; border: none; display: flex; justify-content: flex-start; padding: 14px;">
+        <button id="detail-back-btn" class="shiny-icon-btn">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+    </div>
+    <div id="detail-backdrop" class="detail-backdrop"></div>
+    <div class="detail-content">
+      <div id="detail-poster" class="detail-poster"></div>
+      <div class="detail-info">
+        <h1 id="detail-title" class="detail-title content-caption"></h1>
+        <div id="detail-meta" class="detail-meta"></div>
+        <div class="action-row">
+            <button id="watchlist-btn" class="action-btn"><i class="far fa-heart"></i> My List</button>
+            <button id="share-btn" class="action-btn"><i class="fas fa-share-alt"></i> Share</button>
+        </div>
+      </div>
+    </div>
+    <div style="padding: 0 14px;">
+      <div id="detail-storyline" class="detail-storyline"></div>
+      <div class="download-links-section">
+        <h3 id="download-section-title">Download Options</h3>
+        <div id="detail-link-list" class="link-list"></div>
+      </div>
+      <div id="detail-cast" class="detail-cast"></div>
+    </div>
+  </div>
+  
+  <div id="stream-modal" class="stream-modal">
+    <div class="stream-modal-content">
+      <button class="modal-close-btn" onclick="closeStreamModal()"><i class="fas fa-times"></i></button>
+      <h3 id="stream-modal-title">Select an Option</h3>
+      <div id="stream-list" class="stream-list"></div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+      <a href="#" id="nav-home" class="nav-item active"><i class="fas fa-home"></i><span>Home</span></a>
+      <a href="#" id="nav-provider-search" class="nav-item"><i class="fas fa-search-location"></i><span>Search</span></a>
+      <a href="#" id="nav-genres" class="nav-item"><i class="fas fa-th-large"></i><span>Genres</span></a>
+      <a href="#" id="nav-watchlist" class="nav-item"><i class="fas fa-heart"></i><span>My List</span></a>
+      <a href="#" id="nav-settings" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+  </nav>
+
+<script>
+
+/* -------------- CONFIG & STATE -------------- */
+const POLY_API_BASE = "https://poly-movies-ymnl.onrender.com";
+const DOWNLOAD_PAGE_BASE = "https://nothing-to-see-nine.vercel.app/download.html";
+const OMDB_API_KEY = '7755307f'; 
+let activeProvider = null;
+let catalogData = null;
+let currentCategory = { title: '', filter: '', page: 1 };
+let currentSlideIndex = 0;
+let sliderInterval = null;
+let previousPage = 'home-page';
+let debounceTimer; 
+let currentDetailItem = null;
+let allManifestData = []; 
+let searchMode = 'global';
+
+const ID_BASED_PROVIDERS = ['vega', 'zeefliz', 'luxMovies', 'rogmovies'];
+const HUBCLOUD_PROVIDERS = ['drive', 'mod', 'cinemaluxe', 'uhd', 'kmmovies', '4khdhub', 'filmyfly'];
+
+const DISABLED_PROVIDERS = [
+    "netflixMirror", "primeMirror", "moviesApi", "4khdhub", "mod", "uhd", 
+    "protonMovies", "cinemaLuxe", "movieBox", "skyMovieHD", "Joya9tv",
+    "joya9tv","a111477","autoEmbed","cinemaluxe","dooflix","flixhq","guardahd",
+    "hianime","movies4u","moviesapi","multi","netflixmirror","ogomovies",
+    "primewire","primemirror","protonmovies","ridomovies","ringz","showbox","vadapav"
+];
+
+const PROVIDER_HIGHLIGHTS = {
+    'drive': 'Worldwide Movies',
+    'luxMovies': 'Indian Movies',
+    'animetsu': 'Best for Anime',
+    'hdhub4u': '4K Movies'
+};
+
+/* -------------- DOM ELEMENTS -------------- */
+const DOM = {
+    body: document.body, loadingScreen: document.getElementById('loading-screen'), allPages: document.querySelectorAll('.page'), 
+    backBtns: document.querySelectorAll('.back-btn'), bottomNav: document.querySelector('.bottom-nav'),
+    homePage: document.getElementById('home-page'), homeContent: document.getElementById('home-content'), 
+    providerNameDisplayHome: document.getElementById('provider-name-display-home'), providerNameDisplayGenre: document.getElementById('provider-name-display-genre'),
+    headerSearchBtn: document.getElementById('header-search-btn'), headerSearchBtnGenre: document.getElementById('header-search-btn-genre'),
+    themeToggleBtn: document.getElementById('theme-toggle-btn'),
+    menuBtn: document.getElementById('menu-btn'), menuBtnGenre: document.getElementById('menu-btn-genre'),
+    sideMenuOverlay: document.getElementById('side-menu-overlay'), sideMenuPanel: document.getElementById('side-menu-panel'), providerList: document.getElementById('provider-list'),
+    slider: document.getElementById('slider'), sliderIndicators: document.getElementById('slider-indicators'),
+    genresPage: document.getElementById('genres-page'), genresGrid: document.getElementById('genres-grid'), 
+    categoryPage: document.getElementById('category-page'), categoryPageTitle: document.getElementById('category-page-title'), categoryGrid: document.getElementById('category-grid'),
+    categoryPagination: { controls: document.getElementById('category-pagination-controls'), prevBtn: document.getElementById('category-prev-btn'), nextBtn: document.getElementById('category-next-btn'), },
+    searchPage: document.getElementById('search-page'), searchGrid: document.getElementById('search-grid'), searchInput: document.getElementById('search-input'), clearSearchBtn: document.getElementById('clear-search-btn'), searchBackBtn: document.getElementById('search-back-btn'), searchSuggestions: document.getElementById('search-suggestions'),
+    searchDescription: document.getElementById('search-description'),
+    detailPage: document.getElementById('detail-page'), detailBackdrop: document.getElementById('detail-backdrop'), detailPoster: document.getElementById('detail-poster'),
+    detailTitle: document.getElementById('detail-title'), detailMeta: document.getElementById('detail-meta'), detailStoryline: document.getElementById('detail-storyline'),
+    downloadSectionTitle: document.getElementById('download-section-title'), detailLinkList: document.getElementById('detail-link-list'), detailCast: document.getElementById('detail-cast'),
+    watchlistBtn: document.getElementById('watchlist-btn'), shareBtn: document.getElementById('share-btn'),
+    watchlistPage: document.getElementById('watchlist-page'), watchlistGrid: document.getElementById('watchlist-grid'),
+    aboutPage: document.getElementById('about-page'), providerSlider: document.getElementById('settings-provider-slider'),
+    providerManagerPage: document.getElementById('provider-manager-page'), pmList: document.getElementById('pm-list'), pmCount: document.getElementById('pm-count'), pmTotal: document.getElementById('pm-total'),
+    historyPage: document.getElementById('history-page'), historyGrid: document.getElementById('history-grid'),
+    preferencesPage: document.getElementById('preferences-page'),
+    streamModal: document.getElementById('stream-modal'), streamList: document.getElementById('stream-list'), streamModalTitle: document.getElementById('stream-modal-title'),
+    navHome: document.getElementById('nav-home'), 
+    navProviderSearch: document.getElementById('nav-provider-search'),
+    navGenres: document.getElementById('nav-genres'), navWatchlist: document.getElementById('nav-watchlist'), navSettings: document.getElementById('nav-settings'),
+};
+
+/* -------------- BACKGROUND -------------- */
+function createStars() {
+    const container = document.getElementById('stars-container');
+    if(!container) return;
+    container.innerHTML = ''; 
+    const count = 100;
+    for(let i=0; i<count; i++){
+        const star = document.createElement('div');
+        star.className = 'star';
+        const x = Math.random() * 100;
+        const y = Math.random() * 100;
+        const size = Math.random() * 2 + 1;
+        const duration = Math.random() * 3 + 2;
+        const delay = Math.random() * 5;
+        star.style.left = x + '%';
+        star.style.top = y + '%';
+        star.style.width = size + 'px';
+        star.style.height = size + 'px';
+        star.style.setProperty('--duration', duration + 's');
+        star.style.animationDelay = delay + 's';
+        container.appendChild(star);
+    }
+}
+createStars();
+
+/* -------------- HELPERS -------------- */
+const fetchJSON = async (url) => { try { const res = await fetch(url); if (!res.ok) throw new Error(`Fetch failed`); return res.json(); } catch (e) { console.error(`Fetch failed for ${url}`, e); return null; } };
+const placeholder = (t) => `https://via.placeholder.com/500x750/111/ddd?text=${encodeURIComponent(t||'Content')}`;
+const escapeHtml = (s) => String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const getShortTitle = (t) => t ? t.split(' ').slice(0, 4).join(' ') : '';
+const getCleanTitle = (title) => title ? title.replace(/\s*\(.*?\)\s*|\s*\[.*?\]\s*/g, '').trim() : '';
+function hexToRgb(hex) {
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '229, 9, 20';
+}
+
+/* -------------- THEME -------------- */
+function initTheme() { const savedColor = localStorage.getItem('sanchitflix_color'); if(savedColor) setAppTheme(savedColor); }
+function setAppTheme(color) { if(!/^#[0-9A-F]{6}$/i.test(color)) return; document.documentElement.style.setProperty('--main-color', color); document.documentElement.style.setProperty('--main-color-rgb', hexToRgb(color)); localStorage.setItem('sanchitflix_color', color); }
+function toggleTheme() { showPage('preferences-page', 'home-page'); }
+function updateColorGrid(el) { document.querySelectorAll('.color-option').forEach(e => e.classList.remove('active')); el.classList.add('active'); }
+function updatePreview(color) { if(/^#[0-9A-F]{6}$/i.test(color)) { document.querySelector('.color-preview').style.backgroundColor = color; } }
+
+/* -------------- METADATA -------------- */
+async function getEnhancedMetadata(rawTitle) {
+    const cleanTitle = rawTitle.replace(/\s*\((\d{4})\).*$/, '').replace(/\[.*?\]/g, '').trim();
+    try {
+        const res = await fetch(`https://www.omdbapi.com/?apikey=${OMDB_API_KEY}&t=${encodeURIComponent(cleanTitle)}`);
+        const data = await res.json();
+        if (data.Response === 'True') return data;
+    } catch (e) { console.error("OMDB Fetch Error:", e); }
+    return null;
+}
+
+/* -------------- NAVIGATION -------------- */
+const showPage = (pageId, fromPage = null) => {
+    if (fromPage) previousPage = fromPage;
+    DOM.allPages.forEach(p => p.style.display = 'none');
+    document.getElementById(pageId).style.display = 'block';
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+    
+    if (pageId !== 'search-page') {
+        DOM.searchInput.value = '';
+        DOM.clearSearchBtn.style.display = 'none';
+    }
+
+    if (['home-page', 'category-page', 'detail-page'].includes(pageId)) { DOM.navHome.classList.add('active'); startSliderAuto(); }
+    else if (pageId === 'search-page') { 
+        if(searchMode === 'provider') DOM.navProviderSearch.classList.add('active');
+        clearInterval(sliderInterval);
+    }
+    else if (pageId === 'genres-page') { DOM.navGenres.classList.add('active'); clearInterval(sliderInterval); }
+    else if (pageId === 'watchlist-page') { DOM.navWatchlist.classList.add('active'); clearInterval(sliderInterval); renderWatchlist(); }
+    else if (pageId === 'about-page') { DOM.navSettings.classList.add('active'); clearInterval(sliderInterval); loadSettingsPage(); }
+    else if (pageId === 'history-page') { clearInterval(sliderInterval); renderHistoryPage(); }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+const goBack = () => { showPage(previousPage); };
+
+/* -------------- RENDERERS -------------- */
+const renderSkeleton = (container, isGrid = false, count = 8) => {
+    let skeletons = '';
+    for(let i=0; i < count; i++) { 
+        skeletons += `<div class="grid-item" style="${isGrid ? '' : 'flex: 0 0 110px;'}"><div class="content-card skeleton" style="aspect-ratio: 2/3;"></div><p class="content-caption skeleton" style="height: 12px; width: 80%; margin: 8px auto 0; background: #222;"></p></div>`; 
+    }
+    container.innerHTML = skeletons;
+};
+
+/* -------------- INITIALIZATION -------------- */
+document.addEventListener('DOMContentLoaded', () => { initTheme(); attachEventListeners(); checkProviderSelection(); });
+
+function attachEventListeners() {
+    DOM.backBtns.forEach(btn => btn.addEventListener('click', goBack));
+    document.getElementById('detail-back-btn').addEventListener('click', goBack);
+    DOM.searchBackBtn.addEventListener('click', goBack);
+    document.getElementById('pm-back-btn').addEventListener('click', () => showPage('about-page'));
+    document.getElementById('open-provider-manager').addEventListener('click', () => { loadProviderManager(); showPage('provider-manager-page', 'about-page'); });
+    document.getElementById('open-history-page').addEventListener('click', () => showPage('history-page', 'about-page'));
+    document.getElementById('history-back-btn').addEventListener('click', () => showPage('about-page'));
+    document.getElementById('open-preferences-page').addEventListener('click', () => showPage('preferences-page', 'about-page'));
+    document.getElementById('pref-back-btn').addEventListener('click', () => showPage('about-page'));
+    DOM.themeToggleBtn.addEventListener('click', toggleTheme);
+    DOM.menuBtn.addEventListener('click', openProviderMenu);
+    DOM.menuBtnGenre.addEventListener('click', openProviderMenu);
+    DOM.sideMenuOverlay.addEventListener('click', closeProviderMenu);
+
+    const handleInput = (e) => {
+        const query = e.target.value.trim();
+        DOM.clearSearchBtn.style.display = query ? 'flex' : 'none';
+        clearTimeout(debounceTimer);
+        if (e.key === 'Enter') { DOM.searchSuggestions.style.display = 'none'; doSearch(); } 
+        else if (query.length > 2) { debounceTimer = setTimeout(() => fetchSuggestions(query), 300); } 
+        else { DOM.searchSuggestions.style.display = 'none'; }
+    };
+    DOM.searchInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') handleInput(e); });
+    DOM.searchInput.addEventListener('input', handleInput);
+    DOM.clearSearchBtn.addEventListener('click', () => { DOM.searchInput.value = ''; DOM.clearSearchBtn.style.display = 'none'; DOM.searchGrid.innerHTML = ''; DOM.searchSuggestions.style.display = 'none'; updateSearchUI(); });
+
+    DOM.headerSearchBtn.addEventListener('click', () => { searchMode = 'global'; showPage('search-page', 'home-page'); updateSearchUI(); setTimeout(() => DOM.searchInput.focus(), 100); });
+    DOM.headerSearchBtnGenre.addEventListener('click', () => { searchMode = 'global'; showPage('search-page', 'genres-page'); updateSearchUI(); setTimeout(() => DOM.searchInput.focus(), 100); });
+    
+    DOM.categoryPagination.prevBtn.addEventListener('click', () => { if (currentCategory.page > 1) loadCategoryPage(currentCategory.page - 1); });
+    DOM.categoryPagination.nextBtn.addEventListener('click', () => { loadCategoryPage(currentCategory.page + 1); });
+    
+    DOM.navHome.addEventListener('click', (e) => { e.preventDefault(); showPage('home-page'); });
+    DOM.navProviderSearch.addEventListener('click', (e) => { e.preventDefault(); searchMode = 'provider'; showPage('search-page', 'home-page'); updateSearchUI(); setTimeout(() => DOM.searchInput.focus(), 100); });
+    DOM.navGenres.addEventListener('click', (e) => { e.preventDefault(); showPage('genres-page'); });
+    DOM.navWatchlist.addEventListener('click', (e) => { e.preventDefault(); showPage('watchlist-page'); });
+    DOM.navSettings.addEventListener('click', (e) => { e.preventDefault(); showPage('about-page'); });
+    
+    DOM.watchlistBtn.addEventListener('click', toggleWatchlist);
+    DOM.shareBtn.addEventListener('click', shareContent);
+}
+
+function updateSearchUI() {
+    const providerObj = allManifestData.find(p => p.value === activeProvider);
+    const providerName = providerObj ? providerObj.display_name : activeProvider;
+    const titleEl = DOM.searchPage.querySelector('h3');
+    const descEl = DOM.searchPage.querySelector('p');
+    if (searchMode === 'global') {
+        titleEl.textContent = "Global Search";
+        descEl.textContent = "Search across multiple providers.";
+        DOM.searchInput.placeholder = "Search all...";
+    } else {
+        titleEl.textContent = `Search in ${providerName}`;
+        descEl.textContent = `Results from ${providerName}.`;
+        DOM.searchInput.placeholder = `Search in ${providerName}...`;
+    }
+    DOM.searchGrid.innerHTML = '';
+}
+
+async function checkProviderSelection() {
+    allManifestData = await fetchJSON(`${POLY_API_BASE}/manifest.json`) || [];
+    activeProvider = localStorage.getItem('sanchitflix_provider');
+    if (activeProvider) { initializeApp(false); } else {
+        const firstEnabled = allManifestData.find(p => !DISABLED_PROVIDERS.includes(p.value) && !p.disabled);
+        if(firstEnabled) { activeProvider = firstEnabled.value; localStorage.setItem('sanchitflix_provider', activeProvider); initializeApp(false); } 
+        else { showPage('about-page'); }
+    }
+}
+
+async function initializeApp(isSwitching) {
+    if(!isSwitching) showPage('home-page');
+    const providerObj = allManifestData.find(p => p.value === activeProvider);
+    const displayName = providerObj ? providerObj.display_name : activeProvider;
+    DOM.providerNameDisplayHome.textContent = displayName; 
+    DOM.providerNameDisplayGenre.textContent = displayName;
+    DOM.bottomNav.style.display = 'flex'; DOM.loadingScreen.style.display = 'flex';
+    catalogData = await fetchJSON(`${POLY_API_BASE}/api/${activeProvider}/catalog`);
+    if (!catalogData) { DOM.homeContent.innerHTML = "<p style='text-align:center; padding:20px;'>Could not load.</p>"; DOM.loadingScreen.style.display = 'none'; return; }
+    const trendingPosts = await fetchJSON(`${POLY_API_BASE}/api/${activeProvider}/posts?page=1`);
+    if (trendingPosts) renderSlider(trendingPosts.slice(0, 3));
+    buildHomePage(catalogData.catalog || []); buildGenresPage(catalogData.genres || []);
+}
+
+function openProviderMenu() { DOM.body.classList.add('menu-open'); DOM.providerList.innerHTML = ''; const enabledProviders = allManifestData.filter(p => !DISABLED_PROVIDERS.includes(p.value)); enabledProviders.forEach(p => { const btn = document.createElement('button'); btn.className = `provider-menu-btn ${p.value === activeProvider ? 'active' : ''}`; let iconClass = p.type === 'global' ? 'fas fa-globe' : 'fas fa-flag'; btn.innerHTML = `<i class="${iconClass} icon"></i> <span>${p.display_name}</span> ${p.value === activeProvider ? '<i class="fas fa-check check-mark"></i>' : ''}`; btn.onclick = () => { localStorage.setItem('sanchitflix_provider', p.value); activeProvider = p.value; closeProviderMenu(); initializeApp(true); }; DOM.providerList.appendChild(btn); }); }
+function closeProviderMenu() { DOM.body.classList.remove('menu-open'); }
+function loadSettingsPage() { DOM.providerSlider.innerHTML = ''; const enabledProviders = allManifestData.filter(p => !DISABLED_PROVIDERS.includes(p.value)); enabledProviders.forEach(p => { const div = document.createElement('div'); div.className = `provider-card ${p.value === activeProvider ? 'active' : ''}`; let iconClass = p.type === 'global' ? 'fas fa-globe' : 'fas fa-flag'; div.innerHTML = `<i class="${iconClass} provider-card-icon"></i><div class="provider-card-name">${p.display_name}</div><div class="provider-card-sub">v${p.version}</div>`; div.onclick = () => { activeProvider = p.value; localStorage.setItem('sanchitflix_provider', activeProvider); loadSettingsPage(); initializeApp(true); }; DOM.providerSlider.appendChild(div); }); }
+function loadProviderManager() { DOM.pmList.innerHTML = ''; DOM.pmCount.textContent = allManifestData.filter(p => !DISABLED_PROVIDERS.includes(p.value)).length; DOM.pmTotal.textContent = allManifestData.length; allManifestData.forEach(p => { const item = document.createElement('div'); item.className = 'pm-item'; const isDisabled = DISABLED_PROVIDERS.includes(p.value); item.innerHTML = `<div class="pm-info"><div class="pm-name">${p.display_name}</div><div class="pm-details">v${p.version}</div></div><div class="pm-status ${!isDisabled ? 'enabled' : ''}">${!isDisabled ? '<i class="fas fa-check"></i>' : '<i class="fas fa-times"></i>'}</div>`; DOM.pmList.appendChild(item); }); }
+
+function renderSlider(items) { DOM.slider.innerHTML = ''; DOM.sliderIndicators.innerHTML = ''; items.forEach((item, index) => { const slide = document.createElement('div'); slide.className = 'slide'; slide.innerHTML = `<img src="${item.image || placeholder(item.title)}"><div class="slide-overlay"><div class="slide-title">${escapeHtml(getCleanTitle(item.title))}</div><a class="slide-action-btn"><i class="fas fa-play"></i> Details</a></div>`; slide.onclick = () => openDetailPage(item, 'home-page'); DOM.slider.appendChild(slide); const indicator = document.createElement('div'); indicator.className = 'indicator'; indicator.onclick = () => goToSlide(index); DOM.sliderIndicators.appendChild(indicator); }); updateSliderTransform(); }
+function updateSliderTransform() { DOM.slider.style.transform = `translateX(-${currentSlideIndex * 100}%)`; DOM.sliderIndicators.querySelectorAll('.indicator').forEach((ind, i) => ind.classList.toggle('active', i === currentSlideIndex)); }
+function goToSlide(index) { currentSlideIndex = index; updateSliderTransform(); startSliderAuto(); }
+function startSliderAuto() { clearInterval(sliderInterval); sliderInterval = setInterval(() => { const slideCount = DOM.slider.querySelectorAll('.slide').length; if (slideCount > 0) { currentSlideIndex = (currentSlideIndex + 1) % slideCount; updateSliderTransform(); } }, 3000); }
+
+function buildHomePage(catalogItems) { DOM.homeContent.innerHTML = ''; catalogItems.forEach(section => { const sectionEl = document.createElement('div'); sectionEl.className = 'category-section'; sectionEl.innerHTML = `<div class="category-header"><h2 class="category-title">${escapeHtml(section.title)}</h2><a href="#" class="see-all-btn">All</a></div><div class="content-slider"></div>`; sectionEl.querySelector('.see-all-btn').onclick = (e) => { e.preventDefault(); openCategoryPage(section.title, section.filter); }; renderSkeleton(sectionEl.querySelector('.content-slider'), false, 8); DOM.homeContent.appendChild(sectionEl); }); DOM.loadingScreen.style.display = 'none'; const sliderContainers = DOM.homeContent.querySelectorAll('.content-slider'); catalogItems.forEach(async (section, index) => { const posts = await fetchJSON(`${POLY_API_BASE}/api/${activeProvider}/posts?filter=${encodeURIComponent(section.filter)}&page=1`); if (posts) renderContentSlider(posts, sliderContainers[index]); }); }
+function buildGenresPage(genreItems) { DOM.genresGrid.innerHTML = ''; if (genreItems) genreItems.forEach(genre => { const btn = document.createElement('button'); btn.className = 'genre-btn'; btn.textContent = genre.title; btn.onclick = () => openCategoryPage(genre.title, genre.filter); DOM.genresGrid.appendChild(btn); }); }
+
+async function loadCategoryPage(page) { currentCategory.page = page; showPage('category-page', 'home-page'); DOM.categoryPageTitle.textContent = currentCategory.title; renderSkeleton(DOM.categoryGrid, true, 12); const posts = await fetchJSON(`${POLY_API_BASE}/api/${activeProvider}/posts?filter=${encodeURIComponent(currentCategory.filter)}&page=${page}`); if (posts) { renderGrid(posts, DOM.categoryGrid); DOM.categoryPagination.prevBtn.disabled = (page === 1); DOM.categoryPagination.nextBtn.disabled = posts.length < 10; } }
+
+async function fetchSuggestions(query) {
+    if (searchMode === 'global') {
+        const results = await fetchJSON(`${POLY_API_BASE}/api/${activeProvider}/search?query=${encodeURIComponent(query)}&page=1`);
+        if (results) {
+            DOM.searchSuggestions.innerHTML = '';
+            results.slice(0, 5).forEach(r => {
+                const d = document.createElement('div'); d.className = 'suggestion-item'; d.textContent = getCleanTitle(r.title); d.onclick = () => { DOM.searchInput.value = d.textContent; doSearch(); }; DOM.searchSuggestions.appendChild(d);
+            });
+            DOM.searchSuggestions.style.display = 'block';
+        }
+    }
+}
+
+async function doSearch() {
+    const query = DOM.searchInput.value.trim(); if (!query) return;
+    document.getElementById('search-description').style.display = 'none';
+    DOM.searchGrid.innerHTML = 'Loading...'; 
+    if (searchMode === 'global') {
+        allManifestData.filter(p => !DISABLED_PROVIDERS.includes(p.value)).forEach(async (p) => {
+            const results = await fetchJSON(`${POLY_API_BASE}/api/${p.value}/search?query=${encodeURIComponent(query)}&page=1`);
+            if (results && results.length > 0) renderSearchGrid(results.map(i => ({...i, sourceProvider: p.value})), DOM.searchGrid);
+        });
+    } else {
+        const results = await fetchJSON(`${POLY_API_BASE}/api/${activeProvider}/search?query=${encodeURIComponent(query)}&page=1`);
+        if (results) renderSearchGrid(results.map(i => ({...i, sourceProvider: activeProvider})), DOM.searchGrid);
+    }
+}
+
+function renderContentSlider(items, container) { container.innerHTML = ''; items.forEach(item => { const g = document.createElement('div'); g.className = 'grid-item'; g.innerHTML = `<div class="content-card"><img src="${item.image || placeholder(item.title)}"/></div><p class="content-caption">${escapeHtml(getShortTitle(item.title))}</p>`; g.onclick = () => openDetailPage(item, 'home-page'); container.appendChild(g); }); }
+function renderGrid(items, container) { container.innerHTML = ''; items.forEach(item => { const g = document.createElement('div'); g.className = 'grid-item'; g.innerHTML = `<div class="content-card"><img src="${item.image || placeholder(item.title)}"/></div><p class="content-caption">${escapeHtml(getShortTitle(item.title))}</p>`; g.onclick = () => openDetailPage(item, 'category-page'); container.appendChild(g); }); }
+function renderSearchGrid(items, container) { if(container.innerText === 'Loading...') container.innerHTML = ''; items.forEach(item => { const g = document.createElement('div'); g.className = 'grid-item'; g.innerHTML = `<div class="content-card"><img src="${item.image || placeholder(item.title)}"/><span class="provider-badge">${item.sourceProvider}</span></div><p class="content-caption">${escapeHtml(getShortTitle(item.title))}</p>`; g.onclick = () => openDetailPage(item, 'search-page', item.sourceProvider); container.appendChild(g); }); }
+
+function getWatchlist() { return JSON.parse(localStorage.getItem('sanchitflix_watchlist')) || []; }
+function saveWatchlist(list) { localStorage.setItem('sanchitflix_watchlist', JSON.stringify(list)); }
+function getHistory() { return JSON.parse(localStorage.getItem('sanchitflix_history')) || []; }
+function saveHistory(list) { localStorage.setItem('sanchitflix_history', JSON.stringify(list)); }
+function addToHistory(item) { let l = getHistory(); l = l.filter(i => i.link !== item.link); l.unshift(item); if(l.length > 50) l.pop(); saveHistory(l); }
+function renderHistoryPage() { const l = getHistory(); DOM.historyGrid.innerHTML = ''; l.forEach(i => { const g = document.createElement('div'); g.className = 'grid-item'; g.innerHTML = `<div class="content-card"><img src="${i.image || placeholder(i.title)}"/></div><p class="content-caption">${escapeHtml(getShortTitle(i.title))}</p>`; g.onclick = () => openDetailPage(i, 'history-page', i.sourceProvider); DOM.historyGrid.appendChild(g); }); }
+function toggleWatchlist() { let l = getWatchlist(); const idx = l.findIndex(i => i.link === currentDetailItem.link); if (idx > -1) { l.splice(idx, 1); DOM.watchlistBtn.innerHTML = `<i class="far fa-heart"></i> My List`; } else { l.push(currentDetailItem); DOM.watchlistBtn.innerHTML = `<i class="fas fa-heart"></i> Saved`; } saveWatchlist(l); }
+function renderWatchlist() { const l = getWatchlist(); DOM.watchlistGrid.innerHTML = ''; l.forEach(i => { const g = document.createElement('div'); g.className = 'grid-item'; g.innerHTML = `<div class="content-card"><img src="${i.image || placeholder(i.title)}"/></div><p class="content-caption">${escapeHtml(getShortTitle(i.title))}</p>`; g.onclick = () => openDetailPage(i, 'watchlist-page', i.sourceProvider); DOM.watchlistGrid.appendChild(g); }); }
+function shareContent() { navigator.share ? navigator.share({ title: currentDetailItem.title, url: window.location.href }) : navigator.clipboard.writeText(window.location.href); }
+
+async function openDetailPage(item, fromPage, specProv = null) {
+    const prov = specProv || activeProvider;
+    currentDetailItem = { ...item, sourceProvider: prov };
+    addToHistory(currentDetailItem);
+    showPage('detail-page', fromPage);
+    DOM.detailTitle.textContent = item.title;
+    const img = item.image || placeholder(item.title);
+    DOM.detailBackdrop.innerHTML = `<img src="${img}">`;
+    DOM.detailPoster.innerHTML = `<img src="${img}">`;
+    DOM.detailStoryline.textContent = 'Loading...'; DOM.detailLinkList.innerHTML = '';
+    getEnhancedMetadata(item.title).then(d => { if(d) { DOM.detailStoryline.textContent = d.Plot; DOM.detailMeta.innerHTML = `<span class="meta-year">${d.Year}</span><span class="meta-rating">${d.imdbRating}</span>`; }});
+    const meta = await fetchJSON(`${POLY_API_BASE}/api/${prov}/meta?link=${encodeURIComponent(item.link)}`);
+    if (meta && meta.linkList) {
+        DOM.detailLinkList.innerHTML = '';
+        meta.linkList.forEach(l => {
+            const b = document.createElement('a'); b.className = 'link-btn'; b.target = '_blank';
+            if(meta.type === 'series') { b.innerHTML = `<span>${l.title}</span><i class="fas fa-list"></i>`; b.onclick = (e) => { e.preventDefault(); getEpisodes(l.episodesLink, prov); }; }
+            else { b.href = l.directLinks?.[0]?.link || '#'; b.innerHTML = `<span>${l.title}</span><i class="fas fa-download"></i>`; }
+            DOM.detailLinkList.appendChild(b);
+        });
+    }
+}
+
+async function getEpisodes(url, prov) {
+    DOM.streamModal.style.display = 'flex'; DOM.streamList.innerHTML = 'Loading...';
+    const eps = await fetchJSON(`${POLY_API_BASE}/api/${prov}/episodes?url=${encodeURIComponent(url)}`);
+    DOM.streamList.innerHTML = '';
+    eps?.forEach(e => { const b = document.createElement('a'); b.className = 'stream-btn'; b.href = e.link; b.target = '_blank'; b.textContent = e.title; DOM.streamList.appendChild(b); });
+}
+
+function closeStreamModal() { DOM.streamModal.style.display = 'none'; }
+function openCategoryPage(t, f) { currentCategory = { title: t, filter: f, page: 1 }; loadCategoryPage(1); }
+
+</script>
+</body>
+</html>
