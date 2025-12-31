@@ -87,12 +87,24 @@
         .side-menu-header p { color: var(--text-color-light); font-size: 14px; margin-top: 4px; }
         .provider-list { overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; gap: 4px; }
         .provider-list::-webkit-scrollbar { display: none; }
-        .provider-menu-btn { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 10px; background: transparent; border: none; border-radius: 10px; color: var(--text-color-light); text-align: left; font-size: 16px; font-weight: 500; cursor: pointer; transition: background-color 0.2s, color 0.2s; }
+        .provider-menu-btn { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 10px; background: transparent; border: none; border-radius: 10px; color: var(--text-color-light); text-align: left; font-size: 16px; font-weight: 500; cursor: pointer; transition: background-color 0.2s, color 0.2s; position: relative; }
         .provider-menu-btn i.icon { font-size: 20px; width: 24px; text-align: center; color: #888; transition: color 0.2s; }
         .provider-menu-btn:hover { background-color: rgba(255, 255, 255, 0.05); }
         .provider-menu-btn.active { background-color: rgba(255, 255, 255, 0.1); color: #fff; font-weight: 700; }
         .provider-menu-btn.active i.icon { color: var(--main-color); }
         .provider-menu-btn .check-mark { margin-left: auto; color: var(--main-color); font-size: 16px; }
+        
+        .provider-tag-list { 
+            font-size: 9px; 
+            background: rgba(229, 9, 20, 0.2); 
+            color: var(--main-color); 
+            padding: 2px 6px; 
+            border-radius: 4px; 
+            margin-left: auto; 
+            font-weight: 700; 
+            white-space: nowrap; 
+            border: 1px solid rgba(229, 9, 20, 0.3);
+        }
 
         /* --- SLIDER --- */
         .slider-container { width: 100%; height: 230px; overflow: hidden; margin-bottom: 20px; position: relative; background: var(--card-bg); }
@@ -320,12 +332,15 @@
         .provider-slider { display: flex; overflow-x: auto; gap: 12px; padding: 0 20px 20px; scrollbar-width: none; }
         .provider-card { flex: 0 0 110px; width: 110px; background: var(--surface-color); border-radius: 12px; padding: 16px 10px; text-align: center; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; position: relative; }
         .provider-card.active { border-color: var(--main-color); background: rgba(229, 9, 20, 0.1); }
+        .provider-card-icon { font-size: 24px; color: #fff; margin-bottom: 4px; }
         .provider-card-name { font-size: 12px; font-weight: 600; color: #ddd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
         .provider-card-tag { font-size: 9px; color: var(--main-color); font-weight: 700; margin-top: 2px; }
         .settings-list { background: var(--surface-color); border-radius: 12px; margin: 0 20px 24px; overflow: hidden; }
-        .settings-item { display: flex; align-items: center; padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; text-decoration: none; color: #fff; }
+        .settings-item { display: flex; align-items: center; padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; text-decoration: none; color: #fff; transition: background 0.2s; }
+        .settings-item:hover { background: rgba(255,255,255,0.05); }
         .settings-icon { width: 30px; font-size: 18px; color: var(--main-color); display: flex; justify-content: center; align-items: center; margin-right: 12px; }
         .settings-text { flex: 1; font-size: 15px; font-weight: 500; }
+        .settings-arrow { color: #555; font-size: 14px; margin-left: auto; }
 
         /* --- GLOW TEXT FOR CATEGORIZED TITLES --- */
         #detail-link-list .settings-section-title {
@@ -374,6 +389,16 @@
             background-size: 20px;
         }
 
+        /* --- PROVIDER MANAGER SPECIFIC --- */
+        #pm-list { padding: 0 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+        .pm-item { display: flex; align-items: center; background: var(--surface-color); padding: 16px; border-radius: 12px; gap: 16px; cursor: pointer; transition: background 0.2s; }
+        .pm-item:hover { background: #2a2a2a; }
+        .pm-info { flex: 1; }
+        .pm-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; color: #fff; }
+        .pm-details { font-size: 12px; color: #777; }
+        .pm-status { width: 24px; height: 24px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; color: #555; font-size: 12px; }
+        .pm-status.enabled { background: var(--main-color); color: #fff; }
+
         /* --- RESTORED TABS SIZING (LIKE OLD CODE) --- */
         .bottom-nav { 
             position: fixed; 
@@ -412,7 +437,7 @@
         .stream-list { display: flex; flex-direction: column; gap: 12px; max-height: 70vh; overflow-y: auto; }
         .stream-btn { display: block; width: 100%; padding: 14px; background: #222; border: 1px solid #333; color:var(--text-color); text-decoration: none; text-align: center; border-radius: 8px; font-weight: 700; transition: background .2s, border-color .2s; cursor: pointer; }
 
-        /* FIXED: WATCHLIST EMPTY STATE STYLE */
+        /* WATCHLIST EMPTY STATE STYLE */
         .watchlist-empty { 
             text-align: center; 
             padding: 80px 20px; 
@@ -425,6 +450,14 @@
         }
         .watchlist-empty i { font-size: 48px; margin-bottom: 16px; color: #333; display: block; }
         .watchlist-empty p { font-size: 15px; font-weight: 600; color: #555; }
+
+        /* PREFERENCES PREVIEW */
+        .color-preview { width: 44px; height: 44px; border-radius: 12px; border: 2px solid #444; background: var(--main-color); transition: background-color 0.3s; margin-right: 12px; }
+        .color-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 0 20px; }
+        .color-option { aspect-ratio: 1; border-radius: 50%; cursor: pointer; border: 3px solid #1a1a1a; transition: transform 0.2s; }
+        .color-option.active { border-color: #fff; transform: scale(1.1); box-shadow: 0 0 15px var(--main-color-glow); }
+        .hex-input { flex: 1; background: #000; border: 1px solid #333; color: #fff; padding: 12px 16px; border-radius: 10px; font-size: 16px; font-family: monospace; outline: none; }
+        .apply-btn { background: var(--main-color); color: #fff; border: none; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 16px; text-align: center; width: 100%; cursor: pointer; transition: background-color 0.3s; margin-top: 12px; }
     </style>
 </head>
 <body>
@@ -466,7 +499,6 @@
     <div id="home-content"></div>
   </div>
 
-  <!-- GENRES PAGE -->
   <div id="genres-page" class="page">
     <div class="header">
         <div class="logo">Genres</div>
@@ -475,7 +507,6 @@
     <div id="genres-grid" class="genres-grid"></div>
   </div>
 
-  <!-- WATCHLIST PAGE -->
   <div id="watchlist-page" class="page">
     <div class="header">
         <div class="logo">My List</div>
@@ -488,7 +519,7 @@
     <div class="search-container">
       <button id="search-back-btn" class="back-btn"><i class="fas fa-arrow-left"></i></button>
       <div class="search-input-wrapper">
-          <input id="search-input" class="search-input" placeholder="Search all..."/>
+          <input id="search-input" class="search-input" placeholder="Search..."/>
           <button id="clear-search-btn" class="clear-btn"><i class="fas fa-times"></i></button>
           <div id="search-suggestions"></div>
       </div>
@@ -525,20 +556,74 @@
           </div>
       </div>
 
+      <div class="settings-section-title">Data Management</div>
+      <div class="settings-list">
+          <div class="settings-item" onclick="if(confirm('Clear all app data?')) { localStorage.clear(); location.reload(); }">
+              <div class="settings-icon" style="color: #e50914;"><i class="fas fa-trash-alt"></i></div>
+              <div class="settings-text">Clear Cache</div>
+              <i class="fas fa-chevron-right settings-arrow"></i>
+          </div>
+      </div>
+
       <div class="settings-section-title">Support</div>
       <div class="settings-list">
            <a href="https://t.me/S4NCHITT" target="_blank" class="settings-item">
                <div class="settings-icon" style="color: #229ED9;"><i class="fab fa-telegram"></i></div>
                <div class="settings-text">Join Telegram</div>
+               <i class="fas fa-external-link-alt settings-arrow"></i>
            </a>
            <a href="https://instagram.com/sanch1t__" target="_blank" class="settings-item">
                <div class="settings-icon" style="color: #C13584;"><i class="fab fa-instagram"></i></div>
                <div class="settings-text">Follow Instagram</div>
+               <i class="fas fa-external-link-alt settings-arrow"></i>
            </a>
       </div>
       
       <div style="text-align: center; color: #555; font-size: 12px; padding: 20px;">
           SANCHIT-FLIX v2.1.3<br>Developed by SANCHIT
+      </div>
+  </div>
+
+  <!-- PROVIDER MANAGER PAGE -->
+  <div id="provider-manager-page" class="page">
+      <div class="header">
+          <button class="back-btn"><i class="fas fa-arrow-left"></i></button>
+          <div class="logo">Provider Manager</div>
+      </div>
+      <div id="pm-list"></div>
+  </div>
+
+  <!-- HISTORY PAGE -->
+  <div id="history-page" class="page">
+      <div class="header">
+          <button class="back-btn"><i class="fas fa-arrow-left"></i></button>
+          <div class="logo">Watch History</div>
+      </div>
+      <div id="history-grid" class="category-grid"></div>
+  </div>
+
+  <!-- PREFERENCES PAGE -->
+  <div id="preferences-page" class="page">
+      <div class="header">
+          <button class="back-btn"><i class="fas fa-arrow-left"></i></button>
+          <div class="logo">Preferences</div>
+      </div>
+      <div class="settings-section-title">Theme Presets</div>
+      <div class="color-grid">
+          <div class="color-option" style="background: #e50914;" onclick="setAppTheme('#e50914')"></div>
+          <div class="color-option" style="background: #FFBF00;" onclick="setAppTheme('#FFBF00')"></div>
+          <div class="color-option" style="background: #00FFFF;" onclick="setAppTheme('#00FFFF')"></div>
+          <div class="color-option" style="background: #9D00FF;" onclick="setAppTheme('#9D00FF')"></div>
+          <div class="color-option" style="background: #00FF00;" onclick="setAppTheme('#00FF00')"></div>
+          <div class="color-option" style="background: #FF00FF;" onclick="setAppTheme('#FF00FF')"></div>
+      </div>
+      <div class="settings-section-title">Custom Hex</div>
+      <div style="padding: 0 20px; display: flex; align-items: center; gap: 12px;">
+          <div id="pref-preview" class="color-preview"></div>
+          <input type="text" id="hex-input" class="hex-input" placeholder="#RRGGBB" oninput="updateThemePreview(this.value)">
+      </div>
+      <div style="padding: 0 20px;">
+          <button class="apply-btn" onclick="applyCustomTheme()">Apply Color</button>
       </div>
   </div>
   
@@ -555,7 +640,7 @@
         <div id="detail-meta" class="detail-meta"></div>
         <div class="action-row">
             <button id="watchlist-btn" class="action-btn"><i class="far fa-heart"></i> My List</button>
-            <button id="share-btn" class="action-btn"><i class="fas fa-share-alt"></i> Share</button>
+            <button id="share-btn" class="action-btn" onclick="shareContent()"><i class="fas fa-share-alt"></i> Share</button>
         </div>
       </div>
     </div>
@@ -630,7 +715,10 @@ const DOM = {
     detailCategorySelectContainer: document.getElementById('detail-category-select-container'),
     watchlistBtn: document.getElementById('watchlist-btn'),
     slider: document.getElementById('slider'),
-    sliderIndicators: document.getElementById('slider-indicators')
+    sliderIndicators: document.getElementById('slider-indicators'),
+    pmList: document.getElementById('pm-list'),
+    historyGrid: document.getElementById('history-grid'),
+    providerList: document.getElementById('provider-list')
 };
 
 /* -------------- LOGIC -------------- */
@@ -654,8 +742,112 @@ const escapeHtml = (s) => String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':
 const getShortTitle = (t) => t ? t.split(' ').slice(0, 4).join(' ') : '';
 const getCleanTitle = (title) => title ? title.replace(/\s*\(.*?\)\s*|\s*\[.*?\]\s*/g, '').trim() : '';
 
-function initTheme() { const savedColor = localStorage.getItem('sanchitflix_color'); if(savedColor) document.documentElement.style.setProperty('--main-color', savedColor); }
-function setAppTheme(color) { if(!/^#[0-9A-F]{6}$/i.test(color)) return; document.documentElement.style.setProperty('--main-color', color); localStorage.setItem('sanchitflix_color', color); }
+/* --- THEME LOGIC --- */
+function initTheme() { 
+    const savedColor = localStorage.getItem('sanchitflix_color'); 
+    if(savedColor) setAppTheme(savedColor); 
+}
+function setAppTheme(color) { 
+    if(!/^#[0-9A-F]{6}$/i.test(color)) return; 
+    document.documentElement.style.setProperty('--main-color', color); 
+    localStorage.setItem('sanchitflix_color', color); 
+    const preview = document.getElementById('pref-preview');
+    if(preview) preview.style.backgroundColor = color;
+}
+function updateThemePreview(val) { 
+    if(/^#[0-9A-F]{6}$/i.test(val)) {
+        const preview = document.getElementById('pref-preview');
+        if(preview) preview.style.backgroundColor = val; 
+    }
+}
+function applyCustomTheme() { const val = document.getElementById('hex-input').value; setAppTheme(val); }
+
+/* --- HISTORY LOGIC --- */
+function addToHistory(item) {
+    let hist = JSON.parse(localStorage.getItem('sanchitflix_history')) || [];
+    hist = hist.filter(i => i.link !== item.link);
+    hist.unshift(item);
+    if(hist.length > 30) hist.pop();
+    localStorage.setItem('sanchitflix_history', JSON.stringify(hist));
+}
+function renderHistory() {
+    const hist = JSON.parse(localStorage.getItem('sanchitflix_history')) || [];
+    DOM.historyGrid.innerHTML = hist.length ? '' : '<div class="watchlist-empty">No history found.</div>';
+    hist.forEach(item => {
+        const g = document.createElement('div'); g.className = 'grid-item';
+        g.innerHTML = `<div class="content-card"><img src="${item.image || placeholder(item.title)}"/></div><p class="content-caption">${getShortTitle(item.title)}</p>`;
+        g.onclick = () => openDetailPage(item, 'history-page', item.sourceProvider);
+        DOM.historyGrid.appendChild(g);
+    });
+}
+
+/* --- PROVIDER MANAGER LOGIC --- */
+function loadProviderManager() {
+    DOM.pmList.innerHTML = '';
+    const hiddenProviders = JSON.parse(localStorage.getItem('sanchitflix_hidden_providers')) || [];
+    allManifestData.forEach(p => {
+        const isHidden = hiddenProviders.includes(p.value);
+        const isDisabled = DISABLED_PROVIDERS.includes(p.value);
+        const item = document.createElement('div');
+        item.className = 'pm-item';
+        item.innerHTML = `
+            <div class="pm-info">
+                <div class="pm-name">${p.display_name} ${isDisabled ? '<span style="font-size:10px; color:#ff3333;">(Offline)</span>' : ''}</div>
+                <div class="pm-details">Version: ${p.version}</div>
+            </div>
+            <div class="pm-status ${!isHidden && !isDisabled ? 'enabled' : ''}">
+                <i class="fas fa-${!isHidden && !isDisabled ? 'check' : 'times'}"></i>
+            </div>
+        `;
+        item.onclick = () => {
+            if (isDisabled) return;
+            let currentHidden = JSON.parse(localStorage.getItem('sanchitflix_hidden_providers')) || [];
+            if (currentHidden.includes(p.value)) {
+                currentHidden = currentHidden.filter(id => id !== p.value);
+            } else {
+                currentHidden.push(p.value);
+            }
+            localStorage.setItem('sanchitflix_hidden_providers', JSON.stringify(currentHidden));
+            loadProviderManager();
+        };
+        DOM.pmList.appendChild(item);
+    });
+}
+
+/* --- SIDE MENU POPULATION --- */
+function openProviderMenu() {
+    if (!DOM.providerList) return;
+    DOM.body.classList.add('menu-open'); 
+    DOM.providerList.innerHTML = '';
+    const hiddenProviders = JSON.parse(localStorage.getItem('sanchitflix_hidden_providers')) || [];
+    const enabledProviders = allManifestData.filter(p => !DISABLED_PROVIDERS.includes(p.value) && !hiddenProviders.includes(p.value));
+    
+    enabledProviders.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = `provider-menu-btn ${p.value === activeProvider ? 'active' : ''}`;
+        
+        let iconClass = 'fas fa-film';
+        if (p.type === 'global') iconClass = 'fas fa-globe';
+        else if (p.type === 'india') iconClass = 'fas fa-flag';
+
+        let checkMark = p.value === activeProvider ? '<i class="fas fa-check check-mark"></i>' : '';
+        let tag = PROVIDER_HIGHLIGHTS[p.value] ? `<span class="provider-tag-list">${PROVIDER_HIGHLIGHTS[p.value]}</span>` : '';
+        
+        btn.innerHTML = `<i class="${iconClass} icon"></i> <span>${p.display_name}</span> ${tag} ${checkMark}`;
+        btn.onclick = () => { 
+            if (p.value !== activeProvider) {
+                localStorage.setItem('sanchitflix_provider', p.value); 
+                activeProvider = p.value; 
+                closeProviderMenu(); 
+                initializeApp(true); 
+            } else {
+                closeProviderMenu();
+            }
+        };
+        DOM.providerList.appendChild(btn);
+    });
+}
+function closeProviderMenu() { DOM.body.classList.remove('menu-open'); }
 
 async function getEnhancedMetadata(rawTitle) {
     const cleanTitle = rawTitle.replace(/\s*\((\d{4})\).*$/, '').replace(/\[.*?\]/g, '').trim();
@@ -669,14 +861,14 @@ const showPage = (pageId, fromPage = null) => {
     if(el) el.style.display = 'block';
     document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
     
-    if (pageId === 'home-page') {
-        document.getElementById('nav-home').classList.add('active');
-        startSliderAuto();
-    }
+    if (pageId === 'home-page') { document.getElementById('nav-home').classList.add('active'); startSliderAuto(); }
     else if (pageId === 'search-page') document.getElementById('nav-provider-search').classList.add('active');
     else if (pageId === 'genres-page') document.getElementById('nav-genres').classList.add('active');
     else if (pageId === 'watchlist-page') { document.getElementById('nav-watchlist').classList.add('active'); renderWatchlist(); }
     else if (pageId === 'about-page') { document.getElementById('nav-settings').classList.add('active'); loadSettingsPage(); }
+    else if (pageId === 'history-page') renderHistory();
+    else if (pageId === 'provider-manager-page') loadProviderManager();
+    
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
@@ -693,13 +885,18 @@ function attachEventListeners() {
     document.getElementById('side-menu-overlay').addEventListener('click', closeProviderMenu);
     
     document.getElementById('nav-home').addEventListener('click', (e) => { e.preventDefault(); showPage('home-page'); });
-    document.getElementById('nav-provider-search').addEventListener('click', (e) => { e.preventDefault(); searchMode = 'provider'; showPage('search-page', 'home-page'); updateSearchUI(); });
+    document.getElementById('nav-provider-search').addEventListener('click', (e) => { e.preventDefault(); searchMode = 'global'; showPage('search-page', 'home-page'); updateSearchUI(); });
     document.getElementById('nav-genres').addEventListener('click', (e) => { e.preventDefault(); showPage('genres-page'); });
     document.getElementById('nav-watchlist').addEventListener('click', (e) => { e.preventDefault(); showPage('watchlist-page'); });
     document.getElementById('nav-settings').addEventListener('click', (e) => { e.preventDefault(); showPage('about-page'); });
     
-    document.getElementById('header-search-btn').addEventListener('click', () => { searchMode = 'global'; showPage('search-page', 'home-page'); updateSearchUI(); });
+    document.getElementById('header-search-btn').addEventListener('click', () => { searchMode = 'provider'; showPage('search-page', 'home-page'); updateSearchUI(); });
     document.getElementById('watchlist-btn').addEventListener('click', toggleWatchlist);
+    
+    document.getElementById('open-provider-manager').addEventListener('click', () => showPage('provider-manager-page', 'about-page'));
+    document.getElementById('open-history-page').addEventListener('click', () => showPage('history-page', 'about-page'));
+    document.getElementById('open-preferences-page').addEventListener('click', () => showPage('preferences-page', 'about-page'));
+    document.getElementById('theme-toggle-btn').addEventListener('click', () => showPage('preferences-page', 'home-page'));
 
     document.getElementById('search-input').addEventListener('input', (e) => {
         const query = e.target.value.trim();
@@ -715,17 +912,10 @@ function updateSearchUI() {
     const providerName = providerObj ? providerObj.display_name : activeProvider;
     const searchHeader = document.querySelector('#search-page h3');
     const searchDesc = document.querySelector('#search-page p');
-    
-    if (searchHeader) {
-        searchHeader.textContent = searchMode === 'global' ? "Global Search" : `Search in ${providerName}`;
-    }
-    if (searchDesc) {
-        searchDesc.textContent = searchMode === 'global' ? "Search across multiple providers simultaneously." : `Search results limited to ${providerName}.`;
-    }
-    
+    if (searchHeader) searchHeader.textContent = searchMode === 'global' ? "Global Search" : `Search in ${providerName}`;
+    if (searchDesc) searchDesc.textContent = searchMode === 'global' ? "Search across multiple providers simultaneously." : `Search results limited to ${providerName}.`;
     const descBlock = document.getElementById('search-description');
     if (descBlock) descBlock.style.display = 'flex';
-    
     DOM.searchGroupedContainer.innerHTML = '';
 }
 
@@ -745,16 +935,9 @@ async function initializeApp(isSwitching) {
     const genreName = document.getElementById('provider-name-display-genre');
     if (homeName) homeName.textContent = providerObj?.display_name || activeProvider;
     if (genreName) genreName.textContent = providerObj?.display_name || activeProvider;
-    
-    DOM.bottomNav.style.display = 'flex'; 
-    DOM.loadingScreen.style.display = 'flex';
-    
+    DOM.bottomNav.style.display = 'flex'; DOM.loadingScreen.style.display = 'flex';
     catalogData = await fetchJSON(`${POLY_API_BASE}/api/${activeProvider}/catalog`);
-    if (!catalogData) { 
-        DOM.loadingScreen.style.display = 'none'; 
-        return; 
-    }
-    
+    if (!catalogData) { DOM.loadingScreen.style.display = 'none'; return; }
     const trending = await fetchJSON(`${POLY_API_BASE}/api/${activeProvider}/posts?page=1`);
     if (trending) renderSlider(trending.slice(0, 3));
     buildHomePage(catalogData.catalog || []);
@@ -780,11 +963,17 @@ function buildGenresPage(genres) {
 
 function loadSettingsPage() {
     DOM.providerSlider.innerHTML = '';
-    allManifestData.filter(p => !DISABLED_PROVIDERS.includes(p.value)).forEach(p => {
+    const hiddenProviders = JSON.parse(localStorage.getItem('sanchitflix_hidden_providers')) || [];
+    allManifestData.filter(p => !DISABLED_PROVIDERS.includes(p.value) && !hiddenProviders.includes(p.value)).forEach(p => {
         const div = document.createElement('div');
         div.className = `provider-card ${p.value === activeProvider ? 'active' : ''}`;
+        
+        let iconClass = 'fas fa-film';
+        if (p.type === 'global') iconClass = 'fas fa-globe';
+        else if (p.type === 'india') iconClass = 'fas fa-flag';
+
         let tag = PROVIDER_HIGHLIGHTS[p.value] ? `<div class="provider-card-tag">${PROVIDER_HIGHLIGHTS[p.value]}</div>` : '';
-        div.innerHTML = `<i class="fas fa-film provider-card-icon"></i><div class="provider-card-name">${p.display_name}</div>${tag}`;
+        div.innerHTML = `<i class="${iconClass} provider-card-icon"></i><div class="provider-card-name">${p.display_name}</div>${tag}`;
         div.onclick = () => { activeProvider = p.value; localStorage.setItem('sanchitflix_provider', p.value); loadSettingsPage(); initializeApp(true); };
         DOM.providerSlider.appendChild(div);
     });
@@ -792,8 +981,7 @@ function loadSettingsPage() {
 
 function renderSlider(items) {
     if (!DOM.slider || !DOM.sliderIndicators) return;
-    DOM.slider.innerHTML = ''; 
-    DOM.sliderIndicators.innerHTML = '';
+    DOM.slider.innerHTML = ''; DOM.sliderIndicators.innerHTML = '';
     items.forEach((item, index) => {
         const slide = document.createElement('div'); slide.className = 'slide';
         slide.innerHTML = `<img src="${item.image || placeholder(item.title)}"><div class="slide-overlay"><div class="slide-title">${escapeHtml(getCleanTitle(item.title))}</div><a class="slide-action-btn"><i class="fas fa-play"></i> Details</a></div>`;
@@ -804,25 +992,9 @@ function renderSlider(items) {
     });
     updateSliderTransform();
 }
-
-function updateSliderTransform() { 
-    if (DOM.slider) DOM.slider.style.transform = `translateX(-${currentSlideIndex * 100}%)`; 
-    if (DOM.sliderIndicators) {
-        Array.from(DOM.sliderIndicators.children).forEach((el, i) => el.classList.toggle('active', i === currentSlideIndex));
-    }
-}
-
+function updateSliderTransform() { if (DOM.slider) DOM.slider.style.transform = `translateX(-${currentSlideIndex * 100}%)`; if (DOM.sliderIndicators) Array.from(DOM.sliderIndicators.children).forEach((el, i) => el.classList.toggle('active', i === currentSlideIndex)); }
 function goToSlide(index) { currentSlideIndex = index; updateSliderTransform(); }
-
-function startSliderAuto() { 
-    clearInterval(sliderInterval); 
-    sliderInterval = setInterval(() => { 
-        if (DOM.slider && DOM.slider.children.length) { 
-            currentSlideIndex = (currentSlideIndex + 1) % DOM.slider.children.length; 
-            updateSliderTransform(); 
-        } 
-    }, 3000); 
-}
+function startSliderAuto() { clearInterval(sliderInterval); sliderInterval = setInterval(() => { if (DOM.slider && DOM.slider.children.length) { currentSlideIndex = (currentSlideIndex + 1) % DOM.slider.children.length; updateSliderTransform(); } }, 3000); }
 
 function buildHomePage(catalog) {
     DOM.homeContent.innerHTML = '';
@@ -853,14 +1025,15 @@ async function doSearch() {
     currentSearchId++; const thisSearchId = currentSearchId;
     const desc = document.getElementById('search-description');
     if (desc) desc.style.display = 'none';
-    DOM.searchGroupedContainer.innerHTML = '';
-    const providers = searchMode === 'global' ? allManifestData.filter(p => !DISABLED_PROVIDERS.includes(p.value)) : allManifestData.filter(p => p.value === activeProvider);
+    DOM.searchGroupedContainer.innerHTML = 'Searching...';
+    const hiddenProviders = JSON.parse(localStorage.getItem('sanchitflix_hidden_providers')) || [];
+    const providers = searchMode === 'global' ? allManifestData.filter(p => !DISABLED_PROVIDERS.includes(p.value) && !hiddenProviders.includes(p.value)) : allManifestData.filter(p => p.value === activeProvider);
     const seenNames = new Set();
-    
     providers.forEach(async (p) => {
         if (seenNames.has(p.display_name)) return; seenNames.add(p.display_name);
         const results = await fetchJSON(`${POLY_API_BASE}/api/${p.value}/search?query=${encodeURIComponent(query)}&page=1`);
         if (thisSearchId === currentSearchId && results && results.length > 0) {
+            if (DOM.searchGroupedContainer.innerHTML === 'Searching...') DOM.searchGroupedContainer.innerHTML = '';
             renderCategorizedSearchResults(p.display_name, results, p.value);
         }
     });
@@ -883,22 +1056,18 @@ function renderCategorizedSearchResults(name, items, id) {
 async function openDetailPage(item, from, specProv = null) {
     const prov = specProv || activeProvider; currentDetailItem = { ...item, sourceProvider: prov };
     showPage('detail-page', from);
+    addToHistory(currentDetailItem);
     const titleEl = document.getElementById('detail-title');
     const backdropEl = document.getElementById('detail-backdrop');
     const posterEl = document.getElementById('detail-poster');
     const storyEl = document.getElementById('detail-storyline');
-    
     if(titleEl) titleEl.textContent = item.title;
     if(backdropEl) backdropEl.innerHTML = `<img src="${item.image || placeholder(item.title)}">`;
     if(posterEl) posterEl.innerHTML = `<img src="${item.image || placeholder(item.title)}">`;
-    if(storyEl) storyEl.textContent = 'Loading...';
-    
+    if(storyEl) storyEl.textContent = 'Loading details...';
     DOM.detailLinkList.innerHTML = ''; DOM.detailCategorySelectContainer.innerHTML = '';
-    
     getEnhancedMetadata(item.title).then(d => { if(d && d.Plot && storyEl) storyEl.textContent = d.Plot; });
-
     updateWatchlistBtnState(currentDetailItem);
-
     const meta = await fetchJSON(`${POLY_API_BASE}/api/${prov}/meta?link=${encodeURIComponent(item.link)}`);
     if (meta && meta.linkList) {
         const seasons = {}, qualities = {}, uncategorized = [], qPriority = ['4K', '2160P', '1080P', '720P', '480P'];
@@ -930,35 +1099,23 @@ async function openDetailPage(item, from, specProv = null) {
         if (meta.type === 'series' && Object.keys(seasons).length) {
             const k = Object.keys(seasons).sort((a,b) => a.localeCompare(b, undefined, {numeric: true}));
             DOM.detailCategorySelectContainer.appendChild(buildDropdown('series', k));
-            if (k.length) {
-                const select = DOM.detailCategorySelectContainer.querySelector('select');
-                if (select) select.dispatchEvent(new Event('change'));
-            }
+            DOM.detailCategorySelectContainer.querySelector('select').dispatchEvent(new Event('change'));
         } else if (meta.type !== 'series' && Object.keys(qualities).length) {
             const k = qPriority.filter(q => qualities[q]);
             DOM.detailCategorySelectContainer.appendChild(buildDropdown('movie', k));
-            if (k.length) {
-                const select = DOM.detailCategorySelectContainer.querySelector('select');
-                if (select) select.dispatchEvent(new Event('change'));
-            }
+            DOM.detailCategorySelectContainer.querySelector('select').dispatchEvent(new Event('change'));
         } else uncategorized.forEach(l => renderLink(l, meta.type === 'series'));
     }
 }
 
 async function getEpisodes(url, prov) {
     if(!url || url === "undefined") return;
-    const modal = document.getElementById('stream-modal');
-    const list = document.getElementById('stream-list');
-    if(modal) modal.style.display = 'flex'; 
-    if(list) list.innerHTML = 'Loading...';
-    
+    const modal = document.getElementById('stream-modal'), list = document.getElementById('stream-list');
+    if(modal) modal.style.display = 'flex'; if(list) list.innerHTML = 'Loading...';
     const eps = await fetchJSON(`${POLY_API_BASE}/api/${prov}/episodes?url=${encodeURIComponent(url)}`);
     if(list) {
         list.innerHTML = '';
-        eps?.forEach(e => { 
-            const b = document.createElement('a'); b.className = 'stream-btn'; b.href = e.link; b.target = '_blank'; b.textContent = e.title; 
-            list.appendChild(b); 
-        });
+        eps?.forEach(e => { const b = document.createElement('a'); b.className = 'stream-btn'; b.href = e.link; b.target = '_blank'; b.textContent = e.title; list.appendChild(b); });
     }
 }
 function closeStreamModal() { const modal = document.getElementById('stream-modal'); if(modal) modal.style.display = 'none'; }
@@ -967,16 +1124,8 @@ function updateWatchlistBtnState(item) {
     let list = JSON.parse(localStorage.getItem('sanchitflix_watchlist')) || [];
     const exists = list.some(i => i.link === item.link);
     const btn = document.getElementById('watchlist-btn');
-    if (!btn) return;
-    if (exists) {
-        btn.classList.add('active');
-        btn.innerHTML = `<i class="fas fa-heart"></i> Saved`;
-    } else {
-        btn.classList.remove('active');
-        btn.innerHTML = `<i class="far fa-heart"></i> My List`;
-    }
+    if (btn) { btn.classList.toggle('active', exists); btn.innerHTML = exists ? `<i class="fas fa-heart"></i> Saved` : `<i class="far fa-heart"></i> My List`; }
 }
-
 function toggleWatchlist() {
     let l = JSON.parse(localStorage.getItem('sanchitflix_watchlist')) || [];
     const idx = l.findIndex(i => i.link === currentDetailItem.link);
@@ -984,57 +1133,44 @@ function toggleWatchlist() {
     localStorage.setItem('sanchitflix_watchlist', JSON.stringify(l));
     updateWatchlistBtnState(currentDetailItem);
 }
-
 function renderWatchlist() {
     const list = JSON.parse(localStorage.getItem('sanchitflix_watchlist')) || [];
-    DOM.watchlistGrid.innerHTML = ''; 
-    if (list.length === 0) {
-        DOM.watchlistGrid.innerHTML = `<div class="watchlist-empty"><i class="far fa-folder-open"></i><p>Your list is empty.</p></div>`;
-        return;
-    }
+    DOM.watchlistGrid.innerHTML = list.length ? '' : `<div class="watchlist-empty"><i class="far fa-folder-open"></i><p>Your list is empty.</p></div>`;
     list.forEach(item => {
-        const gridItem = document.createElement('div');
-        gridItem.className = 'grid-item';
-        const providerBadge = item.sourceProvider ? `<span class="provider-badge">${item.sourceProvider}</span>` : '';
-        gridItem.innerHTML = `<div class="content-card"><img src="${item.image || placeholder(item.title)}" onerror="this.src='${placeholder(item.title)}'"/>${providerBadge}</div><p class="content-caption">${escapeHtml(getShortTitle(item.title))}</p>`;
+        const gridItem = document.createElement('div'); gridItem.className = 'grid-item';
+        gridItem.innerHTML = `<div class="content-card"><img src="${item.image || placeholder(item.title)}" onerror="this.src='${placeholder(item.title)}'"/></div><p class="content-caption">${escapeHtml(getShortTitle(item.title))}</p>`;
         gridItem.onclick = () => openDetailPage(item, 'watchlist-page', item.sourceProvider);
         DOM.watchlistGrid.appendChild(gridItem);
     });
 }
-
 async function fetchSuggestions(query) {
-    const provider = activeProvider || 'extraflix';
-    const results = await fetchJSON(`${POLY_API_BASE}/api/${provider}/search?query=${encodeURIComponent(query)}&page=1`);
-    const suggestions = document.getElementById('search-suggestions');
-    if (results && results.length > 0) {
-        suggestions.innerHTML = '';
-        results.slice(0, 5).forEach(r => {
-            const d = document.createElement('div'); d.className = 'suggestion-item'; 
-            d.textContent = getCleanTitle(r.title); 
-            d.onclick = () => { 
-                const inp = document.getElementById('search-input');
-                if(inp) inp.value = d.textContent;
-                suggestions.style.display = 'none';
-                doSearch(); 
-            };
-            suggestions.appendChild(d);
+    const results = await fetchJSON(`${POLY_API_BASE}/api/${activeProvider || 'extraflix'}/search?query=${encodeURIComponent(query)}&page=1`);
+    const s = document.getElementById('search-suggestions');
+    if (results?.length) {
+        s.innerHTML = ''; results.slice(0, 5).forEach(r => {
+            const d = document.createElement('div'); d.style.padding = '12px'; d.style.borderBottom = '1px solid #222'; d.style.color = '#ccc'; d.textContent = getCleanTitle(r.title); d.onclick = () => { document.getElementById('search-input').value = d.textContent; s.style.display = 'none'; doSearch(); };
+            s.appendChild(d);
         });
-        suggestions.style.display = 'block';
-    } else {
-        suggestions.style.display = 'none';
+        s.style.display = 'block';
+    } else s.style.display = 'none';
+}
+function shareContent() {
+    if (!currentDetailItem) return;
+    const shareData = { title: currentDetailItem.title, text: `Watch ${currentDetailItem.title} on SANCHIT-FLIX`, url: window.location.href };
+    if (navigator.share) navigator.share(shareData).catch(() => {});
+    else {
+        const shareUrl = window.location.href;
+        const tempInp = document.createElement('input');
+        document.body.appendChild(tempInp);
+        tempInp.value = shareUrl;
+        tempInp.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInp);
+        const btn = document.getElementById('share-btn');
+        const old = btn.innerHTML; btn.innerHTML = '<i class="fas fa-check"></i> Copied';
+        setTimeout(() => btn.innerHTML = old, 2000);
     }
 }
-
-function openProviderMenu() {
-    DOM.body.classList.add('menu-open'); DOM.providerList.innerHTML = '';
-    allManifestData.filter(p => !DISABLED_PROVIDERS.includes(p.value)).forEach(p => {
-        const btn = document.createElement('button'); btn.className = `provider-menu-btn ${p.value === activeProvider ? 'active' : ''}`;
-        btn.innerHTML = `<i class="fas fa-film icon"></i> <span>${p.display_name}</span>`;
-        btn.onclick = () => { localStorage.setItem('sanchitflix_provider', p.value); activeProvider = p.value; closeProviderMenu(); initializeApp(true); };
-        DOM.providerList.appendChild(btn);
-    });
-}
-function closeProviderMenu() { DOM.body.classList.remove('menu-open'); }
 </script>
 </body>
 </html>
