@@ -167,7 +167,7 @@
         .clear-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; color: #888; background: rgba(255,255,255,0.1); border-radius: 50%; width: 22px; height: 22px; border: 0; cursor: pointer; display: none; align-items: center; justify-content: center; }
         #search-suggestions { position: absolute; top: 110%; left: 0; right: 0; background: #1a1a1a; border: 1px solid #333; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 201; display: none; }
 
-        /* FIXED: CENTERED SEARCH DESCRIPTION (LIKE OLD CODE) */
+        /* FIXED: SEARCH DESCRIPTION ALIGNMENT (CENTERED LIKE OLD CODE) */
         #search-description {
             text-align: center;
             padding: 80px 20px;
@@ -654,7 +654,6 @@
     </div>
   </div>
   
-  <!-- STREAM MODAL -->
   <div id="stream-modal" class="stream-modal">
     <div class="stream-modal-content">
       <button class="modal-close-btn" onclick="closeStreamModal()"><i class="fas fa-times"></i></button>
@@ -663,7 +662,6 @@
     </div>
   </div>
 
-  <!-- NAVIGATION TABS -->
   <nav class="bottom-nav">
       <a href="#" id="nav-home" class="nav-item active"><i class="fas fa-home"></i><span>Home</span></a>
       <a href="#" id="nav-provider-search" class="nav-item"><i class="fas fa-search-location"></i><span>Search</span></a>
@@ -904,7 +902,13 @@ function attachEventListeners() {
         clearTimeout(debounceTimer);
         if (query.length > 2) debounceTimer = setTimeout(() => fetchSuggestions(query), 300);
     });
-    document.getElementById('search-input').addEventListener('keydown', (e) => { if(e.key === 'Enter') doSearch(); });
+    document.getElementById('search-input').addEventListener('keydown', (e) => { 
+        if(e.key === 'Enter') {
+            const suggestions = document.getElementById('search-suggestions');
+            if (suggestions) suggestions.style.display = 'none';
+            doSearch(); 
+        }
+    });
 }
 
 function updateSearchUI() {
@@ -1022,6 +1026,11 @@ async function doSearch() {
     const input = document.getElementById('search-input');
     const query = input ? input.value.trim() : '';
     if (!query) return;
+
+    // HIDE SUGGESTIONS ON SEARCH
+    const suggestions = document.getElementById('search-suggestions');
+    if (suggestions) suggestions.style.display = 'none';
+
     currentSearchId++; const thisSearchId = currentSearchId;
     const desc = document.getElementById('search-description');
     if (desc) desc.style.display = 'none';
