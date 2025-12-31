@@ -282,13 +282,15 @@
         .settings-section-title { padding: 0 20px 10px; font-size: 14px; color: var(--text-color-light); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 10px; }
         .provider-slider { display: flex; overflow-x: auto; gap: 12px; padding: 0 20px 20px; scrollbar-width: none; }
         .provider-slider::-webkit-scrollbar { display: none; }
-        .provider-card { flex: 0 0 110px; width: 110px; background: var(--surface-color); border-radius: 12px; padding: 16px 10px; text-align: center; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+        .provider-card { flex: 0 0 110px; width: 110px; background: var(--surface-color); border-radius: 12px; padding: 16px 10px; text-align: center; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; position: relative; }
         .provider-card.active { border-color: var(--main-color); background: rgba(229, 9, 20, 0.1); }
         .provider-card-icon { font-size: 24px; color: #fff; margin-bottom: 4px; }
         .provider-card-name { font-size: 12px; font-weight: 600; color: #ddd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
         .provider-card-sub { font-size: 10px; color: #777; }
+        
+        /* NEW TAG STYLES */
         .provider-card-tag { font-size: 9px; color: var(--main-color); font-weight: 700; margin-top: 2px; }
-        .provider-tag-list { font-size: 10px; background: var(--main-color-faded-bg); color: var(--main-color); padding: 2px 6px; border-radius: 4px; margin-left: auto; font-weight: 700; white-space: nowrap; }
+        .provider-tag-list { font-size: 10px; background: rgba(229, 9, 20, 0.2); color: var(--main-color); padding: 2px 6px; border-radius: 4px; margin-left: auto; font-weight: 700; white-space: nowrap; }
 
         .settings-list { background: var(--surface-color); border-radius: 12px; margin: 0 20px 24px; overflow: hidden; }
         a.settings-item { text-decoration: none; color: inherit; }
@@ -846,9 +848,44 @@ async function initializeApp(isSwitching) {
     buildHomePage(catalogData.catalog || []); buildGenresPage(catalogData.genres || []);
 }
 
-function openProviderMenu() { DOM.body.classList.add('menu-open'); DOM.providerList.innerHTML = ''; const enabledProviders = allManifestData.filter(p => !DISABLED_PROVIDERS.includes(p.value)); enabledProviders.forEach(p => { const btn = document.createElement('button'); btn.className = `provider-menu-btn ${p.value === activeProvider ? 'active' : ''}`; let iconClass = p.type === 'global' ? 'fas fa-globe' : 'fas fa-flag'; btn.innerHTML = `<i class="${iconClass} icon"></i> <span>${p.display_name}</span> ${p.value === activeProvider ? '<i class="fas fa-check check-mark"></i>' : ''}`; btn.onclick = () => { localStorage.setItem('sanchitflix_provider', p.value); activeProvider = p.value; closeProviderMenu(); initializeApp(true); }; DOM.providerList.appendChild(btn); }); }
+function openProviderMenu() {
+    DOM.body.classList.add('menu-open');
+    DOM.providerList.innerHTML = '';
+    const enabledProviders = allManifestData.filter(p => !DISABLED_PROVIDERS.includes(p.value));
+    enabledProviders.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = `provider-menu-btn ${p.value === activeProvider ? 'active' : ''}`;
+        let iconClass = p.type === 'global' ? 'fas fa-globe' : 'fas fa-flag';
+        
+        // Inject Highlight Tags
+        let highlightTag = PROVIDER_HIGHLIGHTS[p.value] ? `<span class="provider-tag-list">${PROVIDER_HIGHLIGHTS[p.value]}</span>` : '';
+        let checkMark = p.value === activeProvider ? '<i class="fas fa-check check-mark"></i>' : '';
+        
+        btn.innerHTML = `<i class="${iconClass} icon"></i> <span>${p.display_name}</span> ${highlightTag} ${checkMark}`;
+        btn.onclick = () => { localStorage.setItem('sanchitflix_provider', p.value); activeProvider = p.value; closeProviderMenu(); initializeApp(true); };
+        DOM.providerList.appendChild(btn);
+    });
+}
+
 function closeProviderMenu() { DOM.body.classList.remove('menu-open'); }
-function loadSettingsPage() { DOM.providerSlider.innerHTML = ''; const enabledProviders = allManifestData.filter(p => !DISABLED_PROVIDERS.includes(p.value)); enabledProviders.forEach(p => { const div = document.createElement('div'); div.className = `provider-card ${p.value === activeProvider ? 'active' : ''}`; let iconClass = p.type === 'global' ? 'fas fa-globe' : 'fas fa-flag'; div.innerHTML = `<i class="${iconClass} provider-card-icon"></i><div class="provider-card-name">${p.display_name}</div><div class="provider-card-sub">v${p.version}</div>`; div.onclick = () => { activeProvider = p.value; localStorage.setItem('sanchitflix_provider', activeProvider); loadSettingsPage(); initializeApp(true); }; DOM.providerSlider.appendChild(div); }); }
+
+function loadSettingsPage() {
+    DOM.providerSlider.innerHTML = '';
+    const enabledProviders = allManifestData.filter(p => !DISABLED_PROVIDERS.includes(p.value));
+    enabledProviders.forEach(p => {
+        const div = document.createElement('div');
+        div.className = `provider-card ${p.value === activeProvider ? 'active' : ''}`;
+        let iconClass = p.type === 'global' ? 'fas fa-globe' : 'fas fa-flag';
+        
+        // Inject Highlight Tags
+        let highlightTagHTML = PROVIDER_HIGHLIGHTS[p.value] ? `<div class="provider-card-tag">${PROVIDER_HIGHLIGHTS[p.value]}</div>` : '';
+        
+        div.innerHTML = `<i class="${iconClass} provider-card-icon"></i><div class="provider-card-name">${p.display_name}</div>${highlightTagHTML}<div class="provider-card-sub">v${p.version}</div>`;
+        div.onclick = () => { activeProvider = p.value; localStorage.setItem('sanchitflix_provider', activeProvider); loadSettingsPage(); initializeApp(true); };
+        DOM.providerSlider.appendChild(div);
+    });
+}
+
 function loadProviderManager() { DOM.pmList.innerHTML = ''; DOM.pmCount.textContent = allManifestData.filter(p => !DISABLED_PROVIDERS.includes(p.value)).length; DOM.pmTotal.textContent = allManifestData.length; allManifestData.forEach(p => { const item = document.createElement('div'); item.className = 'pm-item'; const isDisabled = DISABLED_PROVIDERS.includes(p.value); item.innerHTML = `<div class="pm-info"><div class="pm-name">${p.display_name}</div><div class="pm-details">v${p.version}</div></div><div class="pm-status ${!isDisabled ? 'enabled' : ''}">${!isDisabled ? '<i class="fas fa-check"></i>' : '<i class="fas fa-times"></i>'}</div>`; DOM.pmList.appendChild(item); }); }
 
 function renderSlider(items) { DOM.slider.innerHTML = ''; DOM.sliderIndicators.innerHTML = ''; items.forEach((item, index) => { const slide = document.createElement('div'); slide.className = 'slide'; slide.innerHTML = `<img src="${item.image || placeholder(item.title)}"><div class="slide-overlay"><div class="slide-title">${escapeHtml(getCleanTitle(item.title))}</div><a class="slide-action-btn"><i class="fas fa-play"></i> Details</a></div>`; slide.onclick = () => openDetailPage(item, 'home-page'); DOM.slider.appendChild(slide); const indicator = document.createElement('div'); indicator.className = 'indicator'; indicator.onclick = () => goToSlide(index); DOM.sliderIndicators.appendChild(indicator); }); updateSliderTransform(); }
