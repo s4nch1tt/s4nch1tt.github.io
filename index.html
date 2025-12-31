@@ -155,15 +155,19 @@
         .clear-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; color: #888; background: rgba(255,255,255,0.1); border-radius: 50%; width: 22px; height: 22px; border: 0; cursor: pointer; display: none; align-items: center; justify-content: center; }
         #search-suggestions { position: absolute; top: 110%; left: 0; right: 0; background: #1a1a1a; border: 1px solid #333; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 201; display: none; }
 
-        /* FIXED: SEARCH DESCRIPTION ALIGNMENT (CENTERED LIKE OLD CODE) */
+        /* FIXED: CENTERED SEARCH DESCRIPTION (LIKE OLD CODE) */
         #search-description {
             text-align: center;
             padding: 80px 20px;
             color: var(--text-color-light);
             animation: fadeSlideUp 0.6s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
-        #search-description h3 { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 10px; text-align: center; }
-        #search-description p { font-size: 14px; color: #888; text-align: center; max-width: 300px; margin: 0 auto; line-height: 1.5; }
+        #search-description h3 { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 10px; text-align: center; width: 100%; }
+        #search-description p { font-size: 14px; color: #888; text-align: center; width: 100%; max-width: 300px; margin: 0 auto; line-height: 1.5; }
 
         @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -716,11 +720,11 @@ function updateSearchUI() {
         searchHeader.textContent = searchMode === 'global' ? "Global Search" : `Search in ${providerName}`;
     }
     if (searchDesc) {
-        searchDesc.textContent = searchMode === 'global' ? "Search across multiple providers." : `Search results limited to ${providerName}.`;
+        searchDesc.textContent = searchMode === 'global' ? "Search across multiple providers simultaneously." : `Search results limited to ${providerName}.`;
     }
     
     const descBlock = document.getElementById('search-description');
-    if (descBlock) descBlock.style.display = 'block';
+    if (descBlock) descBlock.style.display = 'flex';
     
     DOM.searchGroupedContainer.innerHTML = '';
 }
